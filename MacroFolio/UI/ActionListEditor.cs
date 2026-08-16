@@ -400,9 +400,7 @@ public sealed class ActionListEditor
                 {
                     var emotes = EnsureUnlockedEmotes();
                     var current = emotes.FirstOrDefault(e => e.Command == action.Text);
-                    var preview = current is null
-                        ? (string.IsNullOrEmpty(action.Text) ? Loc.Get("Editor.ChooseEmote") : action.Text)
-                        : $"{current.DisplayName} ({current.Command})";
+                    var preview = EmoteComboPreview(current, action.Text);
 
                     var animBoxW = 28f * ImGuiHelpers.GlobalScale;
                     ImGui.SetNextItemWidth(inputW - animBoxW - rowSpacing);
@@ -1149,6 +1147,13 @@ public sealed class ActionListEditor
             .OrderBy(a => a.Name, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
         return cachedJobActions;
+    }
+
+    // Combo label for a predefined emote: known emote, raw command, or the "choose" hint.
+    private static string EmoteComboPreview(EmoteOption? emote, string command)
+    {
+        if (emote is not null) return $"{emote.DisplayName} ({emote.Command})";
+        return string.IsNullOrEmpty(command) ? Loc.Get("Editor.ChooseEmote") : command;
     }
 
     private static unsafe List<EmoteOption> EnsureUnlockedEmotes()

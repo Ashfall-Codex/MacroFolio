@@ -128,11 +128,12 @@ public sealed class BrouillonLibrary
         return chunks;
     }
 
-    public static int CountRequiredMacros(IReadOnlyList<string> lines)
+    public static int CountRequiredMacros(IReadOnlyList<string> lines) => CountRequiredMacros(lines.Count);
+    public static int CountRequiredMacros(int lineCount)
     {
-        if (lines.Count == 0) return 0;
-        if (lines.Count <= ChunkMaxLines) return 1;
-        return 1 + (lines.Count - ChunkMaxLines + ChunkUsefulLines - 1) / ChunkUsefulLines + 1 - 1;
+        if (lineCount <= 0) return 0;
+        if (lineCount <= ChunkMaxLines) return 1;
+        return 1 + (lineCount - ChunkMaxLines + ChunkUsefulLines - 1) / ChunkUsefulLines;
     }
 
     private void EnsureLoaded()

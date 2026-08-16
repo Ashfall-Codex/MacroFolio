@@ -169,7 +169,7 @@ public sealed class MacroCreateWizard : MacroFolioWindowBase, IDisposable
                 var wrap = Plugin.TextureProvider
                     .GetFromGameIcon(new GameIconLookup(iconId))
                     .GetWrapOrDefault();
-                if (wrap != null)
+                if (wrap is not null)
                 {
                     dl.AddImage(wrap.Handle, cursor, cursor + size);
                     rendered = true;

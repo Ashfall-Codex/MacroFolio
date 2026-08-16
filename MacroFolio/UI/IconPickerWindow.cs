@@ -75,7 +75,7 @@ public sealed class IconPickerWindow : MacroFolioWindowBase, IDisposable
         ImGui.TableNextColumn();
         ImGui.TableNextColumn();
 
-        var hint = selectedCategory == null
+        var hint = selectedCategory is null
             ? Loc.Get("IconPicker.SearchHint")
             : $"{Loc.Get("IconPicker.SearchInCategory")} {selectedCategory}";
         ImGui.SetNextItemWidth(-1f);
@@ -130,7 +130,7 @@ public sealed class IconPickerWindow : MacroFolioWindowBase, IDisposable
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(4f * scale, 4f * scale));
         ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 4f * scale);
 
-        DrawCategoryRow(Loc.Get("IconPicker.All"), FontAwesomeIcon.LayerGroup, selectedCategory == null,
+        DrawCategoryRow(Loc.Get("IconPicker.All"), FontAwesomeIcon.LayerGroup, selectedCategory is null,
             indent: 0, expandable: false, isOpen: false, () => SetCategory(null), out _);
 
         foreach (var group in index.CategoryRoots())
@@ -257,7 +257,7 @@ public sealed class IconPickerWindow : MacroFolioWindowBase, IDisposable
         if (ImGui.IsItemHovered())
         {
             ImGui.BeginTooltip();
-            if (ImGui.IsMouseDown(ImGuiMouseButton.Right) && wrap != null)
+            if (ImGui.IsMouseDown(ImGuiMouseButton.Right) && wrap is not null)
             {
                 ImGui.Image(wrap.Handle, new Vector2(400f * ImGuiHelpers.GlobalScale));
             }
@@ -274,7 +274,7 @@ public sealed class IconPickerWindow : MacroFolioWindowBase, IDisposable
             ImGui.EndTooltip();
         }
 
-        if (ImGui.IsItemClicked() && callback != null)
+        if (ImGui.IsItemClicked() && callback is not null)
         {
             currentIconId = iconInfo.IconId;
             callback(iconInfo.IconId);

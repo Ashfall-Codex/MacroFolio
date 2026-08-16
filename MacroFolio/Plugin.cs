@@ -67,9 +67,7 @@ public sealed class Plugin : IDalamudPlugin
         Configuration = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
         Config = Configuration;
 
-        Loc.SetLanguage(string.IsNullOrEmpty(Configuration.UiLanguage)
-            ? (clientState.ClientLanguage == ClientLanguage.French ? Loc.FrenchCode : Loc.EnglishCode)
-            : Configuration.UiLanguage);
+        Loc.SetLanguage(ResolveUiLanguage(Configuration.UiLanguage, clientState.ClientLanguage));
 
         var macroService = new MacroService();
         library = new MacroLibrary(macroService);
@@ -117,6 +115,13 @@ public sealed class Plugin : IDalamudPlugin
         // Already logged in when the plugin loads (e.g. dev reload): queue a re-apply.
         if (clientState.IsLoggedIn)
             reapplyCountdown = ReapplyDelayFrames;
+    }
+
+    // Configured UI language wins; otherwise mirror the game client's language.
+    private static string ResolveUiLanguage(string configured, ClientLanguage clientLanguage)
+    {
+        if (!string.IsNullOrEmpty(configured)) return configured;
+        return clientLanguage == ClientLanguage.French ? Loc.FrenchCode : Loc.EnglishCode;
     }
 
     // Frames to wait before re-applying, so the game finishes its own write first.

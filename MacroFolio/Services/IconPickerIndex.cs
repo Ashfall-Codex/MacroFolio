@@ -43,14 +43,14 @@ public sealed class IconPickerIndex
     }
     public List<IconInfoCategoryGroup> CategoryRoots() =>
         groupForCategory
-            .Where(kv => kv.Key.SubcategoryName == null)
+            .Where(kv => kv.Key.SubcategoryName is null)
             .Select(kv => kv.Value)
             .ToList();
 
     public List<IconInfo> All(IconInfoCategory? category = null)
     {
         if (State != IndexState.Indexed) return new();
-        if (category == null) return iconInfos.Values.ToList();
+        if (category is null) return iconInfos.Values.ToList();
 
         return groupForCategory.GetValueOrDefault(category)
             ?.GetIconsForCategory(category)
@@ -311,7 +311,7 @@ public sealed record IconInfoCategory(string Name, string? SubcategoryName = nul
     public IconInfoCategory TopLevel() => new(Name);
 
     public override string ToString() =>
-        SubcategoryName != null ? $"{Name} ({SubcategoryName})" : Name;
+        SubcategoryName is not null ? $"{Name} ({SubcategoryName})" : Name;
 
     public static readonly Comparer<IconInfoCategory> NameComparer =
         Comparer<IconInfoCategory>.Create((a, b) =>
@@ -332,7 +332,7 @@ public sealed class IconInfoCategoryGroup
     {
         IconInfos.Add(iconInfo);
 
-        if (category.SubcategoryName != null)
+        if (category.SubcategoryName is not null)
         {
             if (!SubcategoryIconInfos.TryGetValue(category, out var sub))
             {

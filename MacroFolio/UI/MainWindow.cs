@@ -746,7 +746,7 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
             try
             {
                 var wrap = Plugin.TextureProvider.GetFromGameIcon(new GameIconLookup(macro.IconId)).GetWrapOrDefault();
-                if (wrap != null)
+                if (wrap is not null)
                 {
                     var tint = dimmed ? new Vector4(1f, 1f, 1f, 0.45f) : Vector4.One;
                     drawList.AddImage(wrap.Handle, cursorScreen, cursorScreen + size, Vector2.Zero, Vector2.One, ImGui.GetColorU32(tint));
@@ -2617,7 +2617,13 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
             if (atBottom) ImGui.EndDisabled();
         }
 
-        var textX = arrowX + arrowW + 10f * ImGuiHelpers.GlobalScale;
+        var iconSize = 36f * ImGuiHelpers.GlobalScale;
+        var iconPos = new Vector2(
+            arrowX + arrowW + 10f * ImGuiHelpers.GlobalScale,
+            cursor.Y + (rowH - iconSize) / 2f);
+        DrawDraftIcon(draft, iconPos, iconSize, dl);
+
+        var textX = iconPos.X + iconSize + 10f * ImGuiHelpers.GlobalScale;
         ImGui.SetCursorScreenPos(new Vector2(textX, cursor.Y + 8f * ImGuiHelpers.GlobalScale));
         ImGui.TextUnformatted(string.IsNullOrEmpty(draft.Name) ? Loc.Get("Common.Unnamed") : draft.Name);
 
@@ -2657,6 +2663,46 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
 
         ImGui.PopID();
         ImGui.SetCursorScreenPos(cursor + new Vector2(0f, rowH + 6f * ImGuiHelpers.GlobalScale));
+    }
+
+    private static void DrawDraftIcon(Brouillon draft, Vector2 cursorScreen, float size, ImDrawListPtr drawList)
+    {
+        var box = new Vector2(size, size);
+
+        var rendered = false;
+        if (draft.IconId > 0)
+        {
+            try
+            {
+                var wrap = Plugin.TextureProvider
+                    .GetFromGameIcon(new GameIconLookup(draft.IconId))
+                    .GetWrapOrDefault();
+                if (wrap is not null)
+                {
+                    drawList.AddImage(wrap.Handle, cursorScreen, cursorScreen + box);
+                    rendered = true;
+                }
+            }
+            catch (Exception) { /* ignore: icon texture not ready */ }
+        }
+
+        if (!rendered)
+        {
+            var initial = string.IsNullOrEmpty(draft.Name) ? "?" : draft.Name[..1].ToUpperInvariant();
+            var textSize = ImGui.CalcTextSize(initial);
+            drawList.AddText(
+                cursorScreen + (box - textSize) / 2f,
+                ImGui.GetColorU32(new Vector4(0.6f, 0.6f, 0.6f, 1f)),
+                initial);
+        }
+
+        drawList.AddRect(
+            cursorScreen,
+            cursorScreen + box,
+            ImGui.GetColorU32(MacroFolioTheme.ThemeBorder),
+            4f * ImGuiHelpers.GlobalScale,
+            ImDrawFlags.None,
+            1f);
     }
 
     private void OpenDraft(Brouillon draft)
@@ -2749,10 +2795,7 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
 
         ImGuiHelpers.ScaledDummy(4f);
         var lines = draftActionEditor.LineCount;
-        var chunks = lines == 0 ? 0
-            : (lines <= BrouillonLibrary.ChunkMaxLines
-                ? 1
-                : 1 + (lines - 1) / BrouillonLibrary.ChunkUsefulLines);
+        var chunks = BrouillonLibrary.CountRequiredMacros(lines);
         var lineWord = lines > 1 ? Loc.Get("Draft.LinesPlural") : Loc.Get("Draft.LineSingular");
         var macroWord2 = chunks > 1 ? Loc.Get("Draft.MacrosPlural") : Loc.Get("Draft.MacroSingular");
         ImGui.TextColored(MacroFolioTheme.AccentColor with { W = 0.7f },

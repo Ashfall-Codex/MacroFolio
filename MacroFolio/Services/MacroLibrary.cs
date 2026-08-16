@@ -23,7 +23,7 @@ public sealed class MacroLibrary
         cacheRootDir = Path.Combine(Plugin.PluginInterface.ConfigDirectory.FullName, "Cache");
     }
 
-    public bool IsAvailable => GetCurrentCharacter() != null;
+    public bool IsAvailable => GetCurrentCharacter() is not null;
     public int Capacity => MacroService.SlotsPerSet;
     public IReadOnlyList<CachedMacro> List(MacroSet set)
     {
@@ -649,7 +649,7 @@ public sealed class MacroLibrary
     private void EnsureLoaded()
     {
         var current = GetCurrentCharacter();
-        if (current == loadedCharacter && current != null) return;
+        if (current == loadedCharacter && current is not null) return;
 
         if (current is null)
         {
