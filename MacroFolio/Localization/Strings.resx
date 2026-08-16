@@ -1,0 +1,895 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="TestBuildWarning.WindowTitle" xml:space="preserve">
+    <value>MacroFolio - Test build###MacroFolioTestWarning</value>
+  </data>
+  <data name="TestBuildWarning.Header" xml:space="preserve">
+    <value>Test build</value>
+  </data>
+  <data name="TestBuildWarning.Body" xml:space="preserve">
+    <value>You are using a development / test build of MacroFolio.
+
+Bugs, crashes and instability are expected. This build is not meant for daily use.
+
+Please do not report issues from this build as if they affected the stable version.</value>
+  </data>
+  <data name="TestBuildWarning.Acknowledge" xml:space="preserve">
+    <value>Got it</value>
+  </data>
+  <data name="TestBuildWarning.Signature" xml:space="preserve">
+    <value>Your beloved developer: Keda</value>
+  </data>
+  <data name="About.Language" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="About.Links" xml:space="preserve">
+    <value>LINKS</value>
+  </data>
+  <data name="About.SlashCommands" xml:space="preserve">
+    <value>Slash commands: /macrofolio  ·  /mfolio</value>
+  </data>
+  <data name="Common.ChooseIcon" xml:space="preserve">
+    <value>Choose an icon</value>
+  </data>
+  <data name="Common.Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Common.Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Common.Create" xml:space="preserve">
+    <value>Create</value>
+  </data>
+  <data name="Common.Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="IconPicker.Title" xml:space="preserve">
+    <value>MacroFolio - Choose an icon</value>
+  </data>
+  <data name="IconPicker.SearchHint" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="IconPicker.SearchInCategory" xml:space="preserve">
+    <value>Search in</value>
+  </data>
+  <data name="IconPicker.Indexing" xml:space="preserve">
+    <value>Indexing icons...</value>
+  </data>
+  <data name="IconPicker.CategoriesHeader" xml:space="preserve">
+    <value>CATEGORIES</value>
+  </data>
+  <data name="IconPicker.All" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="Import.Title" xml:space="preserve">
+    <value>MacroFolio - Import</value>
+  </data>
+  <data name="Import.NoFilesPending" xml:space="preserve">
+    <value>No files pending.</value>
+  </data>
+  <data name="Import.FileCounter" xml:space="preserve">
+    <value>File {0} / {1}</value>
+  </data>
+  <data name="Import.TargetSet" xml:space="preserve">
+    <value>Target set:</value>
+  </data>
+  <data name="Import.Recap" xml:space="preserve">
+    <value>Recap ({0} lines):</value>
+  </data>
+  <data name="Import.OverLimit" xml:space="preserve">
+    <value>The file exceeds {0} lines - only the first ones will be kept.</value>
+  </data>
+  <data name="Import.Icon" xml:space="preserve">
+    <value>Icon:</value>
+  </data>
+  <data name="Import.Name" xml:space="preserve">
+    <value>Name:</value>
+  </data>
+  <data name="Import.NameHint" xml:space="preserve">
+    <value>Macro name</value>
+  </data>
+  <data name="Import.Commit" xml:space="preserve">
+    <value>Import</value>
+  </data>
+  <data name="Import.CommitOne" xml:space="preserve">
+    <value>Import this file</value>
+  </data>
+  <data name="Import.Skip" xml:space="preserve">
+    <value>Skip this file</value>
+  </data>
+  <data name="Import.CancelAll" xml:space="preserve">
+    <value>Cancel all</value>
+  </data>
+  <data name="Set.CurrentCharacter" xml:space="preserve">
+    <value>Current character</value>
+  </data>
+  <data name="Set.Shared" xml:space="preserve">
+    <value>Shared</value>
+  </data>
+  <data name="Wizard.TitleNew" xml:space="preserve">
+    <value>MacroFolio - New macro</value>
+  </data>
+  <data name="Wizard.TitleEdit" xml:space="preserve">
+    <value>MacroFolio - Edit macro</value>
+  </data>
+  <data name="Wizard.NameHint" xml:space="preserve">
+    <value>Macro name</value>
+  </data>
+  <data name="Editor.Mode.Classic" xml:space="preserve">
+    <value>Classic</value>
+  </data>
+  <data name="Editor.Mode.Simplified" xml:space="preserve">
+    <value>Simplified</value>
+  </data>
+  <data name="Editor.Mode.ClassicSubtitle" xml:space="preserve">
+    <value>Like the in-game editor.</value>
+  </data>
+  <data name="Editor.Mode.SimplifiedSubtitle" xml:space="preserve">
+    <value>One action per field, add/remove on the fly.</value>
+  </data>
+  <data name="Editor.LaunchAt" xml:space="preserve">
+    <value>Start at:</value>
+  </data>
+  <data name="Editor.MoveLine" xml:space="preserve">
+    <value>Move line</value>
+  </data>
+  <data name="Editor.MovePrefix" xml:space="preserve">
+    <value>Move {0}</value>
+  </data>
+  <data name="Editor.DragToReorder" xml:space="preserve">
+    <value>Drag to reorder</value>
+  </data>
+  <data name="Editor.TimestampTooltip" xml:space="preserve">
+    <value>Indicative timestamp (start + waits), read-only.</value>
+  </data>
+  <data name="Editor.Seconds" xml:space="preserve">
+    <value>seconds</value>
+  </data>
+  <data name="Editor.ChooseEmote" xml:space="preserve">
+    <value>Choose an emote...</value>
+  </data>
+  <data name="Editor.SearchHint" xml:space="preserve">
+    <value>Search...</value>
+  </data>
+  <data name="Editor.NoEmoteUnlocked" xml:space="preserve">
+    <value>No unlocked emote detected.</value>
+  </data>
+  <data name="Editor.NoResult" xml:space="preserve">
+    <value>No result.</value>
+  </data>
+  <data name="Editor.ChooseAction" xml:space="preserve">
+    <value>Choose an action...</value>
+  </data>
+  <data name="Editor.NoActionAvailable" xml:space="preserve">
+    <value>No action available (log in on a job).</value>
+  </data>
+  <data name="Editor.AddWait" xml:space="preserve">
+    <value>+ wait</value>
+  </data>
+  <data name="Editor.NoteTooltip" xml:space="preserve">
+    <value>Note (only visible in MacroFolio)</value>
+  </data>
+  <data name="Editor.InsertBelow" xml:space="preserve">
+    <value>Insert an action below</value>
+  </data>
+  <data name="Editor.NoteEditHint" xml:space="preserve">
+    <value>Note (only visible here)</value>
+  </data>
+  <data name="Editor.AddAction" xml:space="preserve">
+    <value>+ Add an action</value>
+  </data>
+  <data name="Editor.LineCounter" xml:space="preserve">
+    <value>{0} / {1} lines</value>
+  </data>
+  <data name="Editor.LineCounterUnlimited" xml:space="preserve">
+    <value>{0} line</value>
+  </data>
+  <data name="Editor.LineCounterUnlimitedPlural" xml:space="preserve">
+    <value>{0} lines</value>
+  </data>
+  <data name="Action.Tooltip.ChatVisible" xml:space="preserve">
+    <value>Visible in chat (click to hide: animation only).</value>
+  </data>
+  <data name="Action.Tooltip.ChatHidden" xml:space="preserve">
+    <value>Hidden: animation only, no text in chat (click to show).</value>
+  </data>
+  <data name="Action.Hint.NextMacro" xml:space="preserve">
+    <value>(chains to the next slot)</value>
+  </data>
+  <data name="Action.Hint.CiblerPj" xml:space="preserve">
+    <value>PC name or placeholder (&lt;t&gt;, &lt;2&gt;, &lt;f&gt;...)</value>
+  </data>
+  <data name="Action.Hint.Cibler" xml:space="preserve">
+    <value>Name, &lt;1&gt;..&lt;8&gt;, &lt;t&gt;, &lt;f&gt;, &lt;me&gt;...</value>
+  </data>
+  <data name="Action.Hint.CiblerSoi" xml:space="preserve">
+    <value>(target yourself  ·  /cibler &lt;1&gt;)</value>
+  </data>
+  <data name="Action.Hint.Echo" xml:space="preserve">
+    <value>Message (visible to you only)</value>
+  </data>
+  <data name="Action.Hint.Message" xml:space="preserve">
+    <value>Message</value>
+  </data>
+  <data name="Action.Hint.Brut" xml:space="preserve">
+    <value>Raw command (e.g. /macroicon ... )</value>
+  </data>
+  <data name="Action.Label.Emote" xml:space="preserve">
+    <value>Emote (custom)</value>
+  </data>
+  <data name="Action.Label.EmotePredefini" xml:space="preserve">
+    <value>Predefined emote</value>
+  </data>
+  <data name="Action.Label.SkillAction" xml:space="preserve">
+    <value>Class action</value>
+  </data>
+  <data name="Action.Label.SayParler" xml:space="preserve">
+    <value>Write (say)</value>
+  </data>
+  <data name="Action.Label.SayCrier" xml:space="preserve">
+    <value>Write (yell)</value>
+  </data>
+  <data name="Action.Label.SayHurler" xml:space="preserve">
+    <value>Write (shout)</value>
+  </data>
+  <data name="Action.Label.SayGroupe" xml:space="preserve">
+    <value>Write (party)</value>
+  </data>
+  <data name="Action.Label.Echo" xml:space="preserve">
+    <value>Write (echo)</value>
+  </data>
+  <data name="Action.Label.Countdown" xml:space="preserve">
+    <value>Countdown</value>
+  </data>
+  <data name="Action.Label.Cibler" xml:space="preserve">
+    <value>Target (generic)</value>
+  </data>
+  <data name="Action.Label.CiblerSoi" xml:space="preserve">
+    <value>Target self</value>
+  </data>
+  <data name="Action.Label.CiblerPj" xml:space="preserve">
+    <value>Target a PC</value>
+  </data>
+  <data name="Action.Label.EchoSound" xml:space="preserve">
+    <value>Add a sound</value>
+  </data>
+  <data name="Action.Label.Timer" xml:space="preserve">
+    <value>Timer</value>
+  </data>
+  <data name="Action.Label.NextMacro" xml:space="preserve">
+    <value>Next macro</value>
+  </data>
+  <data name="Action.Label.Brut" xml:space="preserve">
+    <value>Raw</value>
+  </data>
+  <data name="Common.Unnamed" xml:space="preserve">
+    <value>(unnamed)</value>
+  </data>
+  <data name="Common.Back" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="Common.Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Common.SearchHint" xml:space="preserve">
+    <value>Search...</value>
+  </data>
+  <data name="Common.NoResult" xml:space="preserve">
+    <value>No results.</value>
+  </data>
+  <data name="Tab.Macros" xml:space="preserve">
+    <value>My macros</value>
+  </data>
+  <data name="Tab.Drafts" xml:space="preserve">
+    <value>WIP</value>
+  </data>
+  <data name="Tab.Library" xml:space="preserve">
+    <value>My boards</value>
+  </data>
+  <data name="Tab.About" xml:space="preserve">
+    <value>About</value>
+  </data>
+  <data name="Toolbar.Import" xml:space="preserve">
+    <value>Import</value>
+  </data>
+  <data name="Toolbar.Export" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="Toolbar.CacheAll" xml:space="preserve">
+    <value>Cache all</value>
+  </data>
+  <data name="Macros.LoginRequired" xml:space="preserve">
+    <value>Log in to manage your macros.</value>
+  </data>
+  <data name="Macros.CreateTooltip" xml:space="preserve">
+    <value>Create a macro</value>
+  </data>
+  <data name="Macros.Tooltip.Disabled" xml:space="preserve">
+    <value>disabled</value>
+  </data>
+  <data name="Macros.Tooltip.DragHint" xml:space="preserve">
+    <value>Drag to move · right-click for options</value>
+  </data>
+  <data name="Macros.Delete.Confirm" xml:space="preserve">
+    <value>Delete the macro "{0}"?</value>
+  </data>
+  <data name="Macros.Delete.WarnActive" xml:space="preserve">
+    <value>The in-game slot will be cleared and the cached content erased. This action cannot be undone.</value>
+  </data>
+  <data name="Macros.Delete.WarnCached" xml:space="preserve">
+    <value>The cached content will be erased. This action cannot be undone.</value>
+  </data>
+  <data name="Cache.Header" xml:space="preserve">
+    <value>Cached macros  (drag a macro here to disable it)</value>
+  </data>
+  <data name="Overwrite.Confirm" xml:space="preserve">
+    <value>Slot {0} already contains "{1}".</value>
+  </data>
+  <data name="Overwrite.Detail" xml:space="preserve">
+    <value>Placing it here will move the existing macro to the cache (not destroyed).</value>
+  </data>
+  <data name="Overwrite.Replace" xml:space="preserve">
+    <value>Replace</value>
+  </data>
+  <data name="Ctx.Edit" xml:space="preserve">
+    <value>Edit...</value>
+  </data>
+  <data name="Ctx.Execute" xml:space="preserve">
+    <value>Execute</value>
+  </data>
+  <data name="Ctx.ExecuteDisabledHint" xml:space="preserve">
+    <value>Enable the macro to execute it.</value>
+  </data>
+  <data name="Ctx.Enable" xml:space="preserve">
+    <value>Enable (place in a free slot)</value>
+  </data>
+  <data name="Ctx.Disable" xml:space="preserve">
+    <value>Disable (remove from game, keep in cache)</value>
+  </data>
+  <data name="Ctx.Duplicate" xml:space="preserve">
+    <value>Duplicate</value>
+  </data>
+  <data name="Ctx.DuplicateTo" xml:space="preserve">
+    <value>Duplicate to {0}</value>
+  </data>
+  <data name="Ctx.MoveTo" xml:space="preserve">
+    <value>Move to {0}</value>
+  </data>
+  <data name="Ctx.ExportTxt" xml:space="preserve">
+    <value>Export to .txt</value>
+  </data>
+  <data name="Ctx.Delete" xml:space="preserve">
+    <value>Delete permanently</value>
+  </data>
+  <data name="CacheAll.Confirm" xml:space="preserve">
+    <value>Cache the {0} active macro(s) of "{1}"?</value>
+  </data>
+  <data name="CacheAll.Detail" xml:space="preserve">
+    <value>All in-game slots will be cleared. The macros stay in the cache and can be re-enabled (not destroyed).</value>
+  </data>
+  <data name="Export.Title" xml:space="preserve">
+    <value>Export macros</value>
+  </data>
+  <data name="Export.Source" xml:space="preserve">
+    <value>Source: {0}  ·  {1} macro(s)</value>
+  </data>
+  <data name="Export.Format" xml:space="preserve">
+    <value>Format:</value>
+  </data>
+  <data name="Export.FormatJson" xml:space="preserve">
+    <value>JSON (keeps name + icon + lines)</value>
+  </data>
+  <data name="Export.FormatTxt" xml:space="preserve">
+    <value>TXT (one file per macro, raw lines)</value>
+  </data>
+  <data name="Export.Selection" xml:space="preserve">
+    <value>Selection:</value>
+  </data>
+  <data name="Export.SelectAll" xml:space="preserve">
+    <value>Select all</value>
+  </data>
+  <data name="Export.SelectNone" xml:space="preserve">
+    <value>Deselect all</value>
+  </data>
+  <data name="Export.DisabledTag" xml:space="preserve">
+    <value>(disabled)</value>
+  </data>
+  <data name="Export.SelectedCount" xml:space="preserve">
+    <value>{0} macro(s) selected.</value>
+  </data>
+  <data name="Export.JsonDialogTitle" xml:space="preserve">
+    <value>Export to JSON</value>
+  </data>
+  <data name="Export.TxtFolderDialogTitle" xml:space="preserve">
+    <value>Choose the TXT export folder</value>
+  </data>
+  <data name="Export.TxtSingleDialogTitle" xml:space="preserve">
+    <value>Export this macro to TXT</value>
+  </data>
+  <data name="Import.FileDialogTitle" xml:space="preserve">
+    <value>Import one or more macros</value>
+  </data>
+  <data name="Footer.NoSelection" xml:space="preserve">
+    <value>No selection</value>
+  </data>
+  <data name="Footer.Slot" xml:space="preserve">
+    <value>slot #{0}</value>
+  </data>
+  <data name="Footer.Cached" xml:space="preserve">
+    <value>cached</value>
+  </data>
+  <data name="Footer.ActiveCount" xml:space="preserve">
+    <value>{0}/{1} enabled</value>
+  </data>
+  <data name="Footer.ActiveCountWithCache" xml:space="preserve">
+    <value>{0}/{1} enabled  ·  +{2} cached</value>
+  </data>
+  <data name="Footer.ChangeIcon" xml:space="preserve">
+    <value>Change icon</value>
+  </data>
+  <data name="Footer.NameHint" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Planche.Empty" xml:space="preserve">
+    <value>No {0} board. Capture your grid or create one from scratch.</value>
+  </data>
+  <data name="Planche.NewEmptyButton" xml:space="preserve">
+    <value>+ Empty board</value>
+  </data>
+  <data name="Planche.CaptureButton" xml:space="preserve">
+    <value>+ Capture current grid</value>
+  </data>
+  <data name="Planche.DefaultNameEmpty" xml:space="preserve">
+    <value>New board {0}</value>
+  </data>
+  <data name="Planche.DefaultNameCapture" xml:space="preserve">
+    <value>Board from {0}</value>
+  </data>
+  <data name="Planche.MacroSingular" xml:space="preserve">
+    <value>macro</value>
+  </data>
+  <data name="Planche.MacrosPlural" xml:space="preserve">
+    <value>macros</value>
+  </data>
+  <data name="Planche.Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Planche.Apply" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="Planche.Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Planche.NewEmptyTitle" xml:space="preserve">
+    <value>New empty board</value>
+  </data>
+  <data name="Planche.TargetSet" xml:space="preserve">
+    <value>Target set:</value>
+  </data>
+  <data name="Planche.SourceSet" xml:space="preserve">
+    <value>Source set:</value>
+  </data>
+  <data name="Planche.NameHint" xml:space="preserve">
+    <value>Board name</value>
+  </data>
+  <data name="Planche.CreateAndEdit" xml:space="preserve">
+    <value>Create and edit</value>
+  </data>
+  <data name="Planche.EditorTag" xml:space="preserve">
+    <value>Board  ({0})</value>
+  </data>
+  <data name="Planche.AutoSaved" xml:space="preserve">
+    <value>Changes saved automatically.</value>
+  </data>
+  <data name="Planche.SlotsFilled" xml:space="preserve">
+    <value>{0}/100 slots filled</value>
+  </data>
+  <data name="Planche.SlotLabel" xml:space="preserve">
+    <value>Slot {0}</value>
+  </data>
+  <data name="Planche.PickMacro" xml:space="preserve">
+    <value>Choose a macro</value>
+  </data>
+  <data name="Planche.NoMacroInSet" xml:space="preserve">
+    <value>No macro in the library for this set.</value>
+  </data>
+  <data name="Planche.ClearSlot" xml:space="preserve">
+    <value>Clear this slot</value>
+  </data>
+  <data name="Planche.CaptureTitle" xml:space="preserve">
+    <value>New board</value>
+  </data>
+  <data name="Planche.CaptureCount" xml:space="preserve">
+    <value>{0} macro(s) will be captured.</value>
+  </data>
+  <data name="Planche.CreateButton" xml:space="preserve">
+    <value>Create board</value>
+  </data>
+  <data name="Planche.Apply.Confirm" xml:space="preserve">
+    <value>Apply the board "{0}"?</value>
+  </data>
+  <data name="Planche.Apply.Detail" xml:space="preserve">
+    <value>Set: {0}
+
+The {1} macros of the board will be written to their target slots. Active macros in slots not covered by the board will be disabled (removed from the game but kept in the cache).</value>
+  </data>
+  <data name="Planche.Apply.Now" xml:space="preserve">
+    <value>Apply now</value>
+  </data>
+  <data name="Planche.Delete.Confirm" xml:space="preserve">
+    <value>Delete the board "{0}"?</value>
+  </data>
+  <data name="Planche.Delete.Detail" xml:space="preserve">
+    <value>The board will be removed from the library (in-game macros are not affected).</value>
+  </data>
+  <data name="Draft.NewButton" xml:space="preserve">
+    <value>+ New WIP</value>
+  </data>
+  <data name="Draft.DefaultName" xml:space="preserve">
+    <value>New WIP</value>
+  </data>
+  <data name="Draft.EmptyList" xml:space="preserve">
+    <value>No WIP. Click "+ New WIP" to get started.</value>
+  </data>
+  <data name="Draft.RowMeta" xml:space="preserve">
+    <value>{0} lines  -&gt;  {1} {2} in game</value>
+  </data>
+  <data name="Draft.MacroSingular" xml:space="preserve">
+    <value>macro</value>
+  </data>
+  <data name="Draft.MacrosPlural" xml:space="preserve">
+    <value>macros</value>
+  </data>
+  <data name="Draft.LineSingular" xml:space="preserve">
+    <value>line</value>
+  </data>
+  <data name="Draft.LinesPlural" xml:space="preserve">
+    <value>lines</value>
+  </data>
+  <data name="Draft.Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Draft.Publish" xml:space="preserve">
+    <value>Publish</value>
+  </data>
+  <data name="Draft.Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Draft.EditorTag" xml:space="preserve">
+    <value>WIP</value>
+  </data>
+  <data name="Draft.NameHint" xml:space="preserve">
+    <value>WIP name</value>
+  </data>
+  <data name="Draft.PublishedPreview" xml:space="preserve">
+    <value>{0} {1}  -&gt;  {2} {3} in game once published.</value>
+  </data>
+  <data name="Draft.RecordUnavailable" xml:space="preserve">
+    <value>Recording unavailable (hook not loaded).</value>
+  </data>
+  <data name="Draft.StopRecording" xml:space="preserve">
+    <value>Stop recording</value>
+  </data>
+  <data name="Draft.RecStatus" xml:space="preserve">
+    <value>REC  ·  {0} emote(s)</value>
+  </data>
+  <data name="Draft.RecordEmotes" xml:space="preserve">
+    <value>Record my emotes</value>
+  </data>
+  <data name="Draft.RunSequence" xml:space="preserve">
+    <value>Run the sequence</value>
+  </data>
+  <data name="Draft.Preview.Empty" xml:space="preserve">
+    <value>Nothing to run: the sequence is empty.</value>
+  </data>
+  <data name="Draft.Preview.NoFreeSlot" xml:space="preserve">
+    <value>No free macro slot for preview (free one up).</value>
+  </data>
+  <data name="Draft.RecordHint" xml:space="preserve">
+    <value>Record your moves, or run the whole sequence in game (15 lines max).</value>
+  </data>
+  <data name="Draft.Publish.Title" xml:space="preserve">
+    <value>Publish "{0}"</value>
+  </data>
+  <data name="Draft.Publish.Summary" xml:space="preserve">
+    <value>{0} {1}  -&gt;  {2} {3}.</value>
+  </data>
+  <data name="Draft.ChainedMacroSingular" xml:space="preserve">
+    <value>chained macro</value>
+  </data>
+  <data name="Draft.ChainedMacrosPlural" xml:space="preserve">
+    <value>chained macros</value>
+  </data>
+  <data name="Draft.Publish.Composition" xml:space="preserve">
+    <value>Composition: {0}× {1} lines</value>
+  </data>
+  <data name="Draft.Publish.CompositionTail" xml:space="preserve">
+    <value> + 1× {0} lines (without /nextmacro)</value>
+  </data>
+  <data name="Draft.Publish.TargetSet" xml:space="preserve">
+    <value>Target set:</value>
+  </data>
+  <data name="Draft.Publish.StartSlot" xml:space="preserve">
+    <value>Start slot (0-99, direct input allowed):</value>
+  </data>
+  <data name="Draft.Publish.NotEnoughRoom" xml:space="preserve">
+    <value>Not enough room: slots {0} would be needed but the set ends at {1}.</value>
+  </data>
+  <data name="Draft.Publish.WillOverwrite" xml:space="preserve">
+    <value>{0} occupied slot(s) will be overwritten: {1}.</value>
+  </data>
+  <data name="Draft.Publish.SlotFree" xml:space="preserve">
+    <value>Slot {0} free.</value>
+  </data>
+  <data name="Draft.Publish.SlotsFree" xml:space="preserve">
+    <value>Slots {0} free.</value>
+  </data>
+  <data name="Draft.Publish.Now" xml:space="preserve">
+    <value>Publish now</value>
+  </data>
+  <data name="Draft.Delete.Confirm" xml:space="preserve">
+    <value>Delete the WIP "{0}"?</value>
+  </data>
+  <data name="Draft.Delete.Detail" xml:space="preserve">
+    <value>The WIP will be removed (macros already published in game are not affected).</value>
+  </data>
+  <data name="IconCat.Actions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="IconCat.ItemCategories" xml:space="preserve">
+    <value>Item categories</value>
+  </data>
+  <data name="IconCat.ClassJob" xml:space="preserve">
+    <value>Class/Job</value>
+  </data>
+  <data name="IconCat.FreeCompany" xml:space="preserve">
+    <value>Free Company</value>
+  </data>
+  <data name="IconCat.ChocoboRacing" xml:space="preserve">
+    <value>Chocobo Racing</value>
+  </data>
+  <data name="IconCat.DutiesTrials" xml:space="preserve">
+    <value>Duties/Trials</value>
+  </data>
+  <data name="IconCat.Emotes" xml:space="preserve">
+    <value>Emotes</value>
+  </data>
+  <data name="IconCat.Eureka" xml:space="preserve">
+    <value>Eureka</value>
+  </data>
+  <data name="IconCat.GrandCompany" xml:space="preserve">
+    <value>Grand Company</value>
+  </data>
+  <data name="IconCat.General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="IconCat.Achievements" xml:space="preserve">
+    <value>Achievements</value>
+  </data>
+  <data name="IconCat.Icons" xml:space="preserve">
+    <value>Icons</value>
+  </data>
+  <data name="IconCat.UI" xml:space="preserve">
+    <value>Interface</value>
+  </data>
+  <data name="IconCat.PvP" xml:space="preserve">
+    <value>PvP</value>
+  </data>
+  <data name="IconCat.Housing" xml:space="preserve">
+    <value>Housing</value>
+  </data>
+  <data name="IconCat.Macros" xml:space="preserve">
+    <value>Macros</value>
+  </data>
+  <data name="IconCat.MapMarkers" xml:space="preserve">
+    <value>Map Markers</value>
+  </data>
+  <data name="IconCat.Minions" xml:space="preserve">
+    <value>Minions</value>
+  </data>
+  <data name="IconCat.Fashion" xml:space="preserve">
+    <value>Fashion</value>
+  </data>
+  <data name="IconCat.Currencies" xml:space="preserve">
+    <value>Currencies</value>
+  </data>
+  <data name="IconCat.Mounts" xml:space="preserve">
+    <value>Mounts</value>
+  </data>
+  <data name="IconCat.Weather" xml:space="preserve">
+    <value>Weather</value>
+  </data>
+  <data name="IconCat.Items" xml:space="preserve">
+    <value>Items</value>
+  </data>
+  <data name="IconCat.Orchestrion" xml:space="preserve">
+    <value>Orchestrion</value>
+  </data>
+  <data name="IconCat.NPC" xml:space="preserve">
+    <value>NPC</value>
+  </data>
+  <data name="IconCat.GroupPose" xml:space="preserve">
+    <value>Group Pose</value>
+  </data>
+  <data name="IconCat.Quests" xml:space="preserve">
+    <value>Quests</value>
+  </data>
+  <data name="IconCat.Statuses" xml:space="preserve">
+    <value>Statuses</value>
+  </data>
+  <data name="IconCat.Playstyle" xml:space="preserve">
+    <value>Playstyle</value>
+  </data>
+  <data name="IconCat.System" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="IconCat.Traits" xml:space="preserve">
+    <value>Traits</value>
+  </data>
+  <data name="IconCat.Equipment" xml:space="preserve">
+    <value>Equipment</value>
+  </data>
+  <data name="IconCat.Tags" xml:space="preserve">
+    <value>Tags</value>
+  </data>
+  <data name="IconCat.Event" xml:space="preserve">
+    <value>Event</value>
+  </data>
+  <data name="Tab.Textes" xml:space="preserve">
+    <value>My texts</value>
+  </data>
+  <data name="Common.Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Texte.New" xml:space="preserve">
+    <value>+ New text</value>
+  </data>
+  <data name="Texte.DefaultName" xml:space="preserve">
+    <value>Untitled</value>
+  </data>
+  <data name="Texte.Hint" xml:space="preserve">
+    <value>Click a title to send it to chat.</value>
+  </data>
+  <data name="Texte.Empty" xml:space="preserve">
+    <value>No text. Click "+ New text" to get started.</value>
+  </data>
+  <data name="Texte.Tooltip.SendDirect" xml:space="preserve">
+    <value>Click to send directly to chat.</value>
+  </data>
+  <data name="Texte.Tooltip.Prefill" xml:space="preserve">
+    <value>Click to copy the text (paste it into chat then Enter).</value>
+  </data>
+  <data name="Texte.AutoSaved" xml:space="preserve">
+    <value>Changes saved automatically.</value>
+  </data>
+  <data name="Texte.TitleHint" xml:space="preserve">
+    <value>Text title</value>
+  </data>
+  <data name="Texte.SendDirect" xml:space="preserve">
+    <value>Send directly to chat</value>
+  </data>
+  <data name="Texte.SendDirect.Help" xml:space="preserve">
+    <value>If enabled, clicking the title sends the text immediately (programmatic message sending is technically against FFXIV's terms of service). Otherwise, the text is copied for manual pasting.</value>
+  </data>
+  <data name="Texte.Counter" xml:space="preserve">
+    <value>{0} character(s)  ·  {1} message(s)</value>
+  </data>
+  <data name="Texte.Feedback.Empty" xml:space="preserve">
+    <value>Nothing to send: the text is empty.</value>
+  </data>
+  <data name="Texte.Feedback.Sent" xml:space="preserve">
+    <value>{0} message(s) sent.</value>
+  </data>
+  <data name="Texte.Feedback.Copied" xml:space="preserve">
+    <value>{0} message(s) copied - paste into chat then Enter.</value>
+  </data>
+  <data name="Texte.Delete.Confirm" xml:space="preserve">
+    <value>Delete the text "{0}"?</value>
+  </data>
+  <data name="Texte.Feedback.Queued" xml:space="preserve">
+    <value>{0} message(s) queued - one every {1}s.</value>
+  </data>
+  <data name="Texte.EditorHint" xml:space="preserve">
+    <value>Press Enter to insert a line break (each line = one message).</value>
+  </data>
+  <data name="Texte.Preview" xml:space="preserve">
+    <value>Preview:</value>
+  </data>
+  <data name="Conflict.Header" xml:space="preserve">
+    <value>Conflict detected between MacroFolio and the game</value>
+  </data>
+  <data name="Conflict.Intro" xml:space="preserve">
+    <value>One or more macros were changed in-game (for example via the native tool or an update) and differ from MacroFolio's memory. For each macro, choose which version to keep. Nothing is overwritten without your consent.</value>
+  </data>
+  <data name="Conflict.SlotInfo" xml:space="preserve">
+    <value>"{0}" · slot #{1}</value>
+  </data>
+  <data name="Conflict.GameVersion" xml:space="preserve">
+    <value>In-game version:</value>
+  </data>
+  <data name="Conflict.CacheVersion" xml:space="preserve">
+    <value>MacroFolio version:</value>
+  </data>
+  <data name="Conflict.NameLines" xml:space="preserve">
+    <value>{0} - {1} line(s)</value>
+  </data>
+  <data name="Conflict.KeepGame" xml:space="preserve">
+    <value>Keep the game version</value>
+  </data>
+  <data name="Conflict.KeepGame.Help" xml:space="preserve">
+    <value>Adopts the macro as it is in-game (your vanilla work is preserved).</value>
+  </data>
+  <data name="Conflict.RestoreCache" xml:space="preserve">
+    <value>Restore MacroFolio</value>
+  </data>
+  <data name="Conflict.RestoreCache.Help" xml:space="preserve">
+    <value>Rewrites MacroFolio's remembered version into the game slot.</value>
+  </data>
+  <data name="Texte.DragHint" xml:space="preserve">
+    <value>Drag to reorder</value>
+  </data>
+  <data name="Conflict.DiffLegend" xml:space="preserve">
+    <value>Lines in orange differ between the two versions.</value>
+  </data>
+  <data name="Draft.RunFrom" xml:space="preserve">
+    <value>from line</value>
+  </data>
+</root>

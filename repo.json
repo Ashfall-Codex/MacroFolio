@@ -1,0 +1,20 @@
+[
+  {
+    "Author": "Keda",
+    "Name": "MacroFolio",
+    "InternalName": "MacroFolio",
+    "AssemblyVersion": "0.1.0.0",
+    "Description": "Listez, éditez et organisez vos macros (personnage et communes). Import / export JSON et TXT.",
+    "Punchline": "Gestionnaire de macros avec import/export JSON.",
+    "RepoUrl": "https://github.com/kedaewyn/MacroFolio",
+    "ApplicableVersion": "any",
+    "DalamudApiLevel": 15,
+    "IconUrl": "",
+    "DownloadLinkInstall": "https://repo.example.dev/macrofolio/latest.zip",
+    "DownloadLinkUpdate": "https://repo.example.dev/macrofolio/latest.zip",
+    "DownloadLinkTesting": "https://repo.example.dev/macrofolio/testing.zip",
+    "IsHide": false,
+    "IsTestingExclusive": false,
+    "LastUpdate": "0"
+  }
+]

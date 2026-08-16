@@ -1,0 +1,23 @@
+{
+  "$schema": "https://raw.githubusercontent.com/goatcorp/Dalamud/master/Dalamud.Common/PluginManifest/DalamudPluginManifest.json",
+  "Name": "MacroFolio",
+  "Author": "Keda",
+  "Punchline": "Gestionnaire de macros.",
+  "Description": "Listez, éditez et organisez vos macros.",
+  "Tags": [
+    "macro",
+    "macros",
+    "import",
+    "export",
+    "json"
+  ],
+  "CategoryTags": [
+    "utility"
+  ],
+  "InternalName": "MacroFolio",
+  "AssemblyVersion": "0.0.1.0",
+  "RepoUrl": "https://github.com/kedaewyn/MacroFolio",
+  "IconUrl": "",
+  "ApplicableVersion": "any",
+  "DalamudApiLevel": 15
+}
