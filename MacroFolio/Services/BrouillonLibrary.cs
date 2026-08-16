@@ -90,16 +90,14 @@ public sealed class BrouillonLibrary
         if (draft is null) return;
 
         cache!.Remove(draft);
-        try
+        var failure = SafeIo.Run(() =>
         {
             var path = ResolvePath(id);
             if (File.Exists(path))
                 File.Delete(path);
-        }
-        catch (Exception ex)
-        {
-            Plugin.Log.Warning(ex, "Failed to delete draft file {Id}", id);
-        }
+        });
+        if (failure is not null)
+            Plugin.Log.Warning(failure, "Failed to delete draft file {Id}", id);
     }
 
     public Brouillon? GetById(string id)
@@ -141,45 +139,39 @@ public sealed class BrouillonLibrary
         if (cache is not null) return;
         cache = new List<Brouillon>();
 
-        try
+        var failure = SafeIo.Run(() =>
         {
             if (!Directory.Exists(draftsDir)) return;
 
             foreach (var path in Directory.EnumerateFiles(draftsDir, "*.json"))
             {
-                try
+                var readFailure = SafeIo.Run(() =>
                 {
                     var json = File.ReadAllText(path);
                     var draft = JsonSerializer.Deserialize<Brouillon>(json, jsonOptions);
                     if (draft is not null && !string.IsNullOrEmpty(draft.Id))
                         cache.Add(draft);
-                }
-                catch (Exception ex)
-                {
-                    Plugin.Log.Warning(ex, "Skipped malformed draft {Path}", path);
-                }
+                });
+                if (readFailure is not null)
+                    Plugin.Log.Warning(readFailure, "Skipped malformed draft {Path}", path);
             }
-        }
-        catch (Exception ex)
-        {
-            Plugin.Log.Warning(ex, "Failed to enumerate drafts directory");
-        }
+        });
+        if (failure is not null)
+            Plugin.Log.Warning(failure, "Failed to enumerate drafts directory");
     }
 
     private void Persist(Brouillon draft)
     {
-        try
+        var failure = SafeIo.Run(() =>
         {
             Directory.CreateDirectory(draftsDir);
             var path = ResolvePath(draft.Id);
             var tmp = path + ".tmp";
             File.WriteAllText(tmp, JsonSerializer.Serialize(draft, jsonOptions));
             File.Move(tmp, path, overwrite: true);
-        }
-        catch (Exception ex)
-        {
-            Plugin.Log.Error(ex, "Failed to save draft {Id}", draft.Id);
-        }
+        });
+        if (failure is not null)
+            Plugin.Log.Error(failure, "Failed to save draft {Id}", draft.Id);
     }
 
     private string ResolvePath(string id) => Path.Combine(draftsDir, $"{id}.json");

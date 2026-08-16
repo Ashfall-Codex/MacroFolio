@@ -71,16 +71,14 @@ public sealed class PlancheLibrary
 
         cache!.Remove(planche);
 
-        try
+        var failure = SafeIo.Run(() =>
         {
             var path = ResolvePath(id);
             if (File.Exists(path))
                 File.Delete(path);
-        }
-        catch (Exception ex)
-        {
-            Plugin.Log.Warning(ex, "Failed to delete planche file {Id}", id);
-        }
+        });
+        if (failure is not null)
+            Plugin.Log.Warning(failure, "Failed to delete planche file {Id}", id);
     }
 
     public Planche? GetById(string id)
@@ -102,45 +100,39 @@ public sealed class PlancheLibrary
         if (cache is not null) return;
         cache = new List<Planche>();
 
-        try
+        var failure = SafeIo.Run(() =>
         {
             if (!Directory.Exists(planchesDir)) return;
 
             foreach (var path in Directory.EnumerateFiles(planchesDir, "*.json"))
             {
-                try
+                var readFailure = SafeIo.Run(() =>
                 {
                     var json = File.ReadAllText(path);
                     var planche = JsonSerializer.Deserialize<Planche>(json, jsonOptions);
                     if (planche is not null && !string.IsNullOrEmpty(planche.Id))
                         cache.Add(planche);
-                }
-                catch (Exception ex)
-                {
-                    Plugin.Log.Warning(ex, "Skipped malformed planche {Path}", path);
-                }
+                });
+                if (readFailure is not null)
+                    Plugin.Log.Warning(readFailure, "Skipped malformed planche {Path}", path);
             }
-        }
-        catch (Exception ex)
-        {
-            Plugin.Log.Warning(ex, "Failed to enumerate planches directory");
-        }
+        });
+        if (failure is not null)
+            Plugin.Log.Warning(failure, "Failed to enumerate planches directory");
     }
 
     private void Persist(Planche planche)
     {
-        try
+        var failure = SafeIo.Run(() =>
         {
             Directory.CreateDirectory(planchesDir);
             var path = ResolvePath(planche.Id);
             var tmp = path + ".tmp";
             File.WriteAllText(tmp, JsonSerializer.Serialize(planche, jsonOptions));
             File.Move(tmp, path, overwrite: true);
-        }
-        catch (Exception ex)
-        {
-            Plugin.Log.Error(ex, "Failed to save planche {Id}", planche.Id);
-        }
+        });
+        if (failure is not null)
+            Plugin.Log.Error(failure, "Failed to save planche {Id}", planche.Id);
     }
 
     private string ResolvePath(string id) => Path.Combine(planchesDir, $"{id}.json");

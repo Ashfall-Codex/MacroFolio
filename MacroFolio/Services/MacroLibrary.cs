@@ -664,26 +664,25 @@ public sealed class MacroLibrary
 
     private LibraryFile LoadFrom(string characterName)
     {
-        try
+        var failure = SafeIo.Run(() =>
         {
             var path = ResolvePath(characterName);
             if (!File.Exists(path)) return new LibraryFile();
 
             var json = File.ReadAllText(path);
-            var loaded = JsonSerializer.Deserialize<LibraryFile>(json, jsonOptions);
-            return loaded ?? new LibraryFile();
-        }
-        catch (Exception ex)
-        {
-            Plugin.Log.Warning(ex, "Failed to load macro library for {Char}", characterName);
-            return new LibraryFile();
-        }
+            return JsonSerializer.Deserialize<LibraryFile>(json, jsonOptions) ?? new LibraryFile();
+        }, out var loaded);
+
+        if (failure is not null)
+            Plugin.Log.Warning(failure, "Failed to load macro library for {Char}", characterName);
+
+        return loaded ?? new LibraryFile();
     }
 
     private void SaveCurrent()
     {
         if (loadedCharacter is null) return;
-        try
+        var failure = SafeIo.Run(() =>
         {
             var path = ResolvePath(loadedCharacter);
             var dir = Path.GetDirectoryName(path);
@@ -693,11 +692,9 @@ public sealed class MacroLibrary
             var tmp = path + ".tmp";
             File.WriteAllText(tmp, JsonSerializer.Serialize(data, jsonOptions));
             File.Move(tmp, path, overwrite: true);
-        }
-        catch (Exception ex)
-        {
-            Plugin.Log.Error(ex, "Failed to save macro library for {Char}", loadedCharacter);
-        }
+        });
+        if (failure is not null)
+            Plugin.Log.Error(failure, "Failed to save macro library for {Char}", loadedCharacter);
     }
 
     private string ResolvePath(string characterName)

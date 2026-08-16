@@ -125,16 +125,14 @@ public sealed class TexteLibrary
 
         cache!.Remove(texte);
 
-        try
+        var failure = SafeIo.Run(() =>
         {
             var path = ResolvePath(id);
             if (File.Exists(path))
                 File.Delete(path);
-        }
-        catch (Exception ex)
-        {
-            Plugin.Log.Warning(ex, "Failed to delete texte file {Id}", id);
-        }
+        });
+        if (failure is not null)
+            Plugin.Log.Warning(failure, "Failed to delete texte file {Id}", id);
     }
 
     public TexteRP? GetById(string id)
@@ -148,45 +146,39 @@ public sealed class TexteLibrary
         if (cache is not null) return;
         cache = new List<TexteRP>();
 
-        try
+        var failure = SafeIo.Run(() =>
         {
             if (!Directory.Exists(textesDir)) return;
 
             foreach (var path in Directory.EnumerateFiles(textesDir, "*.json"))
             {
-                try
+                var readFailure = SafeIo.Run(() =>
                 {
                     var json = File.ReadAllText(path);
                     var texte = JsonSerializer.Deserialize<TexteRP>(json, jsonOptions);
                     if (texte is not null && !string.IsNullOrEmpty(texte.Id))
                         cache.Add(texte);
-                }
-                catch (Exception ex)
-                {
-                    Plugin.Log.Warning(ex, "Skipped malformed texte {Path}", path);
-                }
+                });
+                if (readFailure is not null)
+                    Plugin.Log.Warning(readFailure, "Skipped malformed texte {Path}", path);
             }
-        }
-        catch (Exception ex)
-        {
-            Plugin.Log.Warning(ex, "Failed to enumerate textes directory");
-        }
+        });
+        if (failure is not null)
+            Plugin.Log.Warning(failure, "Failed to enumerate textes directory");
     }
 
     private void Persist(TexteRP texte)
     {
-        try
+        var failure = SafeIo.Run(() =>
         {
             Directory.CreateDirectory(textesDir);
             var path = ResolvePath(texte.Id);
             var tmp = path + ".tmp";
             File.WriteAllText(tmp, JsonSerializer.Serialize(texte, jsonOptions));
             File.Move(tmp, path, overwrite: true);
-        }
-        catch (Exception ex)
-        {
-            Plugin.Log.Error(ex, "Failed to save texte {Id}", texte.Id);
-        }
+        });
+        if (failure is not null)
+            Plugin.Log.Error(failure, "Failed to save texte {Id}", texte.Id);
     }
 
     private string ResolvePath(string id) => Path.Combine(textesDir, $"{id}.json");
