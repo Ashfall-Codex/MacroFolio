@@ -1,12 +1,24 @@
+<div align="center">
+
 # MacroFolio
 
 [![Build Status](https://github.com/kedaewyn/MacroFolio/actions/workflows/build.yml/badge.svg)](https://github.com/kedaewyn/MacroFolio/actions/workflows/build.yml)
 [![License: AGPL-v3](https://img.shields.io/badge/License-AGPL--v3-blue.svg)](https://github.com/kedaewyn/MacroFolio/blob/main/LICENSE)
 [![Latest Release](https://img.shields.io/github/v/release/kedaewyn/MacroFolio?include_prereleases)](https://github.com/kedaewyn/MacroFolio/releases)
 
-> Gestionnaire de macros pour Final Fantasy XIV - plugin Dalamud.
+[![Quality gate](https://argus.arediss.fr/api/projects/kedaewyn-macrofolio/badge.svg)](https://argus.arediss.fr)
+[![Fiabilité](https://argus.arediss.fr/api/projects/kedaewyn-macrofolio/badge.svg?metric=reliability)](https://argus.arediss.fr)
+[![Sécurité](https://argus.arediss.fr/api/projects/kedaewyn-macrofolio/badge.svg?metric=security)](https://argus.arediss.fr)
+[![Maintenabilité](https://argus.arediss.fr/api/projects/kedaewyn-macrofolio/badge.svg?metric=maintainability)](https://argus.arediss.fr)
+[![Vulnérabilités](https://argus.arediss.fr/api/projects/kedaewyn-macrofolio/badge.svg?metric=vulnerabilities)](https://argus.arediss.fr)
 
-MacroFolio remplace la fenêtre `/macro` native par un éditeur plus complet : grille visuelle, création assistée, sauvegarde par personnage, planches (blueprints de grilles), brouillons illimités avec enregistrement live et prévisualisation, import / export JSON et TXT, et plus encore.
+**Gestionnaire de macros pour Final Fantasy XIV - plugin Dalamud.**
+
+MacroFolio remplace la fenêtre `/macro` native par un éditeur plus complet : grille visuelle,
+création assistée, sauvegarde par personnage, planches (blueprints de grilles), brouillons
+illimités avec enregistrement live et prévisualisation, import / export JSON et TXT, et plus encore.
+
+</div>
 
 ---
 
