@@ -96,7 +96,7 @@ MacroFolio ne touche jamais directement à `char.dat`. Toutes les écritures pas
 
 ### Via repo custom
 
-Ajoute l'URL du `repo.json` hébergé dans `/xlsettings` → onglet **Experimental** → **Custom Plugin Repositories**, puis cherche **MacroFolio** dans la liste des plugins.
+https://repo.ashfall-codex.dev/plugins.json
 
 ### Build local (développeur)
 
