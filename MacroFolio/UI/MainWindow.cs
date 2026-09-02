@@ -196,6 +196,8 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         ImGuiHelpers.ScaledDummy(6f);
 
         // Resolve the first pending conflict; the modal stays up for the next one.
+        // PendingConflicts is live, so snapshot the count before any button mutates it.
+        var pendingCount = conflicts.Count;
         var c = conflicts[0];
         var setLabel = c.Set == MacroSet.Individual ? IndividualSetLabel() : Loc.Get("Set.Shared");
         ImGui.TextDisabled(string.Format(Loc.Get("Conflict.SlotInfo"), setLabel, c.Slot));
@@ -245,6 +247,21 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
             ImGui.BeginTooltip();
             ImGui.TextUnformatted(Loc.Get("Conflict.RestoreCache.Help"));
             ImGui.EndTooltip();
+        }
+
+        // Bulk escape hatch: with 20+ conflicts, resolving them one by one is
+        // tedious and error-prone. Only offered while more than one is pending.
+        if (pendingCount > 1)
+        {
+            ImGui.SameLine();
+            if (ImGui.Button(string.Format(Loc.Get("Conflict.RestoreAll"), pendingCount)))
+                library.ResolveRestoreCacheAll();
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.BeginTooltip();
+                ImGui.TextUnformatted(Loc.Get("Conflict.RestoreAll.Help"));
+                ImGui.EndTooltip();
+            }
         }
 
         // Close automatically once all conflicts are resolved.
@@ -1195,6 +1212,12 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
     private string? requestDeleteTexteId;
     private string? texteFeedback;
     private double texteFeedbackUntil;
+    private const string TexteDragType = "MF_TEXTE";
+    private string? draggedTexteId;
+    private (string Id, int TargetIndex)? pendingTexteMove;
+
+    private static unsafe bool AcceptTexteDrop()
+        => ImGui.AcceptDragDropPayload(TexteDragType).Handle is not null;
 
     private void DrawTextesTab()
     {
@@ -1232,40 +1255,48 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         if (ImGui.BeginChild("##textes_list"))
         {
             for (var i = 0; i < textes.Count; i++)
-                DrawTexteRow(textes[i], i, textes.Count);
+                DrawTexteRow(textes[i], i);
         }
         ImGui.EndChild();
+
+        // Apply a drag & drop reorder once the list is fully drawn.
+        if (pendingTexteMove is { } move)
+        {
+            texteLibrary.MoveTo(move.Id, move.TargetIndex);
+            pendingTexteMove = null;
+            draggedTexteId = null;
+        }
 
         DrawTexteDeletePopup();
     }
 
-    private void DrawTexteRow(TexteRP t, int index, int total)
+    private void DrawTexteRow(TexteRP t, int index)
     {
         ImGui.PushID(t.Id);
 
         var rowH = 30f * ImGuiHelpers.GlobalScale;
         var title = string.IsNullOrWhiteSpace(t.Title) ? Loc.Get("Common.Unnamed") : t.Title;
 
-        var arrowW = 24f * ImGuiHelpers.GlobalScale;
+        var gripW = 22f * ImGuiHelpers.GlobalScale;
         var editW = ImGui.CalcTextSize(Loc.Get("Common.Edit")).X + ImGui.GetStyle().FramePadding.X * 2;
         var delW = 28f * ImGuiHelpers.GlobalScale;
         var spacing = 4f * ImGuiHelpers.GlobalScale;
 
-        // Explicit up/down arrows to reorder (more discoverable than drag).
-        var atTop = index == 0;
-        var atBottom = index == total - 1;
+        // Grab handle: drag it onto another row to reorder the list.
+        ImGui.PushStyleVar(ImGuiStyleVar.SelectableTextAlign, new Vector2(0.5f, 0.5f));
         using (Plugin.PluginInterface.UiBuilder.IconFontFixedWidthHandle.Push())
         {
-            if (atTop) ImGui.BeginDisabled();
-            if (ImGui.Button(FontAwesomeIcon.ChevronUp.ToIconString() + "##up", new Vector2(arrowW, rowH)))
-                texteLibrary.MoveUp(t.Id);
-            if (atTop) ImGui.EndDisabled();
-
-            ImGui.SameLine(0f, 1f);
-            if (atBottom) ImGui.BeginDisabled();
-            if (ImGui.Button(FontAwesomeIcon.ChevronDown.ToIconString() + "##down", new Vector2(arrowW, rowH)))
-                texteLibrary.MoveDown(t.Id);
-            if (atBottom) ImGui.EndDisabled();
+            ImGui.Selectable(FontAwesomeIcon.GripVertical.ToIconString() + "##grip", false,
+                ImGuiSelectableFlags.None, new Vector2(gripW, rowH));
+        }
+        ImGui.PopStyleVar();
+        BeginTexteDragSource(t, title);
+        AcceptTexteDropOn(index);
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.BeginTooltip();
+            ImGui.TextUnformatted(Loc.Get("Texte.DragHint"));
+            ImGui.EndTooltip();
         }
 
         // Click the title to send/pre-fill. Buttons on the right edit/delete.
@@ -1275,6 +1306,7 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         {
             SendTexte(t);
         }
+        AcceptTexteDropOn(index);
         if (ImGui.IsItemHovered())
         {
             ImGui.BeginTooltip();
@@ -1285,15 +1317,46 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         ImGui.SameLine(0f, spacing);
         if (ImGui.Button(Loc.Get("Common.Edit") + "##e"))
             OpenTexte(t);
-
+        
+        var quickDelete = ImGui.GetIO().KeyCtrl;
         ImGui.SameLine(0f, spacing);
+        if (quickDelete) ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.90f, 0.35f, 0.35f, 1f));
         using (Plugin.PluginInterface.UiBuilder.IconFontFixedWidthHandle.Push())
         {
             if (ImGui.Button(FontAwesomeIcon.Trash.ToIconString() + "##d", new Vector2(delW, 0)))
-                requestDeleteTexteId = t.Id;
+            {
+                if (quickDelete) texteLibrary.Delete(t.Id);
+                else requestDeleteTexteId = t.Id;
+            }
+        }
+        if (quickDelete) ImGui.PopStyleColor();
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.BeginTooltip();
+            ImGui.TextUnformatted(Loc.Get("Texte.Delete.Quick"));
+            ImGui.EndTooltip();
         }
 
         ImGui.PopID();
+    }
+
+    private void BeginTexteDragSource(TexteRP t, string title)
+    {
+        if (!ImGui.BeginDragDropSource(ImGuiDragDropFlags.None)) return;
+
+        draggedTexteId = t.Id;
+        ImGui.SetDragDropPayload(TexteDragType, DragPayloadDummy);
+        ImGui.TextUnformatted(title);
+        ImGui.EndDragDropSource();
+    }
+
+    private void AcceptTexteDropOn(int index)
+    {
+        if (!ImGui.BeginDragDropTarget()) return;
+
+        if (AcceptTexteDrop() && draggedTexteId is not null)
+            pendingTexteMove = (draggedTexteId, index);
+        ImGui.EndDragDropTarget();
     }
 
     private void SendTexte(TexteRP t)

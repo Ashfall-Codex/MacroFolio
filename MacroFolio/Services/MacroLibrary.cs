@@ -141,6 +141,18 @@ public sealed class MacroLibrary
         pendingConflicts.RemoveAll(c => c.Set == conflict.Set && c.Slot == conflict.Slot);
     }
 
+    public void ResolveRestoreCacheAll()
+    {
+        EnsureLoaded();
+        foreach (var conflict in pendingConflicts.ToList())
+        {
+            var m = Pick(conflict.Set).FirstOrDefault(x => x.Id == conflict.Id);
+            if (m is not null && m.GameSlot == conflict.Slot)
+                macroService.Write(conflict.Set, conflict.Slot, ToEntry(m));
+        }
+        pendingConflicts.Clear();
+    }
+
     public CachedMacro Create(MacroSet set, string name, uint iconId, IEnumerable<string> lines, float startOffset = 0f, IEnumerable<string>? notes = null)
     {
         EnsureLoaded();

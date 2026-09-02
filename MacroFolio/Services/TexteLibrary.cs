@@ -52,51 +52,22 @@ public sealed class TexteLibrary
         return texte;
     }
 
-    /// <summary>Swap the text with its previous neighbour (move up in the list).</summary>
-    public void MoveUp(string id) => MoveBy(id, -1);
-
-    /// <summary>Swap the text with its next neighbour (move down in the list).</summary>
-    public void MoveDown(string id) => MoveBy(id, +1);
-
-    private void MoveBy(string id, int delta)
+    public void MoveTo(string id, int targetIndex)
     {
         EnsureLoaded();
         var ordered = cache!.OrderBy(t => t.SortOrder)
             .ThenBy(t => t.Title, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
 
-        var idx = ordered.FindIndex(t => t.Id == id);
-        var target = idx + delta;
-        if (idx < 0 || target < 0 || target >= ordered.Count) return;
+        var from = ordered.FindIndex(t => t.Id == id);
+        if (from < 0) return;
 
-        (ordered[idx], ordered[target]) = (ordered[target], ordered[idx]);
+        targetIndex = Math.Clamp(targetIndex, 0, ordered.Count - 1);
+        if (from == targetIndex) return;
 
-        for (var i = 0; i < ordered.Count; i++)
-        {
-            if (ordered[i].SortOrder == i) continue;
-            ordered[i].SortOrder = i;
-            Persist(ordered[i]);
-        }
-    }
-
-    /// <summary>
-    /// Move the text with <paramref name="id"/> to sit right before <paramref name="targetId"/>
-    /// (or to the end if targetId is null). Renumbers and persists all SortOrder values.
-    /// </summary>
-    public void Reorder(string id, string? targetId)
-    {
-        EnsureLoaded();
-        var ordered = cache!.OrderBy(t => t.SortOrder)
-            .ThenBy(t => t.Title, StringComparer.CurrentCultureIgnoreCase)
-            .ToList();
-
-        var moved = ordered.FirstOrDefault(t => t.Id == id);
-        if (moved is null) return;
-
-        ordered.Remove(moved);
-        var targetIdx = targetId is null ? ordered.Count : ordered.FindIndex(t => t.Id == targetId);
-        if (targetIdx < 0) targetIdx = ordered.Count;
-        ordered.Insert(targetIdx, moved);
+        var moved = ordered[from];
+        ordered.RemoveAt(from);
+        ordered.Insert(targetIndex, moved);
 
         for (var i = 0; i < ordered.Count; i++)
         {

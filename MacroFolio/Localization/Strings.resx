@@ -883,8 +883,17 @@ The {1} macros of the board will be written to their target slots. Active macros
   <data name="Conflict.RestoreCache.Help" xml:space="preserve">
     <value>Rewrites MacroFolio's remembered version into the game slot.</value>
   </data>
+  <data name="Conflict.RestoreAll" xml:space="preserve">
+    <value>Restore all ({0})</value>
+  </data>
+  <data name="Conflict.RestoreAll.Help" xml:space="preserve">
+    <value>Rewrites MacroFolio's remembered version for every remaining conflict, with no further confirmation.</value>
+  </data>
   <data name="Texte.DragHint" xml:space="preserve">
     <value>Drag to reorder</value>
+  </data>
+  <data name="Texte.Delete.Quick" xml:space="preserve">
+    <value>Delete. Hold Ctrl to delete immediately, without confirmation.</value>
   </data>
   <data name="Conflict.DiffLegend" xml:space="preserve">
     <value>Lines in orange differ between the two versions.</value>

@@ -883,8 +883,17 @@ Les {1} macros de la planche seront écrites à leurs slots cibles. Les macros a
   <data name="Conflict.RestoreCache.Help" xml:space="preserve">
     <value>Réécrit la version mémorisée par MacroFolio dans le slot du jeu.</value>
   </data>
+  <data name="Conflict.RestoreAll" xml:space="preserve">
+    <value>Tout rétablir ({0})</value>
+  </data>
+  <data name="Conflict.RestoreAll.Help" xml:space="preserve">
+    <value>Réécrit la version mémorisée par MacroFolio pour tous les conflits restants, sans autre confirmation.</value>
+  </data>
   <data name="Texte.DragHint" xml:space="preserve">
     <value>Glisser pour réordonner</value>
+  </data>
+  <data name="Texte.Delete.Quick" xml:space="preserve">
+    <value>Supprimer. Ctrl enfoncé : suppression immédiate, sans confirmation.</value>
   </data>
   <data name="Conflict.DiffLegend" xml:space="preserve">
     <value>Les lignes en orange diffèrent entre les deux versions.</value>
