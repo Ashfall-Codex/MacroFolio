@@ -7,6 +7,7 @@ using Dalamud.Interface.Windowing;
 using MacroFolio.Localization;
 using MacroFolio.Models;
 using MacroFolio.Services;
+using MacroFolio.UI.Components;
 
 namespace MacroFolio.UI;
 
@@ -1565,6 +1566,10 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
 
         ImGuiHelpers.ScaledDummy(18f);
 
+        DrawGlassSelector(availW);
+
+        ImGuiHelpers.ScaledDummy(18f);
+
         CenteredLine(
             Loc.Get("About.SlashCommands"),
             new Vector4(0.5f, 0.5f, 0.5f, 1f),
@@ -1633,6 +1638,19 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
             }
             ImGui.EndCombo();
         }
+    }
+
+    private static void DrawGlassSelector(float availW)
+    {
+        CenteredLine(Loc.Get("Config.UiGlass").ToUpperInvariant(), new Vector4(0.5f, 0.5f, 0.5f, 1f), availW);
+        ImGuiHelpers.ScaledDummy(6f);
+
+        var sliderW = MathF.Min(260f * ImGuiHelpers.GlobalScale, availW);
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + MathF.Max(0, (availW - sliderW) / 2f));
+        var glass = Plugin.Config.UiGlass;
+        var released = GlassSlider.Draw("##ui_glass", ref glass, sliderW, Loc.Get("Config.UiGlass.Tooltip"));
+        Plugin.Config.UiGlass = glass;
+        if (released) Plugin.Config.Save();
     }
 
 
@@ -1942,7 +1960,7 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         drawList.AddRectFilled(
             cursor,
             cursor + new Vector2(width, rowH),
-            ImGui.GetColorU32(MacroFolioTheme.ThemeButtonBg),
+            ImGui.GetColorU32(MacroFolioTheme.ThemeButtonBg with { W = MacroFolioTheme.CardAlpha() }),
             4f * ImGuiHelpers.GlobalScale);
         drawList.AddRect(
             cursor,
@@ -2647,7 +2665,7 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         dl.AddRectFilled(
             cursor,
             cursor + new Vector2(width, rowH),
-            ImGui.GetColorU32(new Vector4(0.16f, 0.16f, 0.16f, 1f)),
+            ImGui.GetColorU32(new Vector4(0.16f, 0.16f, 0.16f, MacroFolioTheme.CardAlpha())),
             6f * ImGuiHelpers.GlobalScale);
         dl.AddRect(
             cursor,

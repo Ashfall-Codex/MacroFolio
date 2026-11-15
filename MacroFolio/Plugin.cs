@@ -69,6 +69,9 @@ public sealed class Plugin : IDalamudPlugin
 
         Loc.SetLanguage(ResolveUiLanguage(Configuration.UiLanguage, clientState.ClientLanguage));
 
+        MacroFolioTheme.AttachConfiguration(Configuration);
+        MacroFolioTheme.Backdrop = new BackdropBlur(pluginInterface.UiBuilder);
+
         var macroService = new MacroService();
         library = new MacroLibrary(macroService);
         var plancheLibrary = new PlancheLibrary();
@@ -149,7 +152,10 @@ public sealed class Plugin : IDalamudPlugin
 
     private void DrawUI()
     {
+        if (MacroFolioTheme.Backdrop is { } backdrop)
+            backdrop.Strength = MacroFolioTheme.BlurStrength;
         WindowSystem.Draw();
+        MacroFolioTheme.Backdrop?.ReleaseIfIdle();
         FileDialogManager.Draw();
     }
 
@@ -177,6 +183,11 @@ public sealed class Plugin : IDalamudPlugin
         Safe(() => importWindow.Dispose());
         Safe(() => iconPicker.Dispose());
         Safe(() => testBuildWarning.Dispose());
+        Safe(() =>
+        {
+            MacroFolioTheme.Backdrop?.Dispose();
+            MacroFolioTheme.Backdrop = null;
+        });
 
         Safe(() => commandManager.RemoveHandler(Constants.CommandName));
         foreach (var alias in Constants.CommandAliases)

@@ -80,6 +80,12 @@ Please do not report issues from this build as if they affected the stable versi
   <data name="About.Language" xml:space="preserve">
     <value>Language</value>
   </data>
+  <data name="Config.UiGlass" xml:space="preserve">
+    <value>Transparency effect</value>
+  </data>
+  <data name="Config.UiGlass.Tooltip" xml:space="preserve">
+    <value>Left: clear glass that lets the scenery show through almost sharp. Moving right, the glass gets tinted and frosted, up to a fully opaque background at the far right. Only backgrounds are affected: text, buttons and tabs stay opaque.</value>
+  </data>
   <data name="About.Links" xml:space="preserve">
     <value>LINKS</value>
   </data>

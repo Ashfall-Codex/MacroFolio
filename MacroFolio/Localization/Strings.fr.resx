@@ -80,6 +80,12 @@ Merci de ne pas reporter les problèmes de cette version comme s'ils concernaien
   <data name="About.Language" xml:space="preserve">
     <value>Langue</value>
   </data>
+  <data name="Config.UiGlass" xml:space="preserve">
+    <value>Effet de transparence</value>
+  </data>
+  <data name="Config.UiGlass.Tooltip" xml:space="preserve">
+    <value>À gauche, un verre transparent qui laisse voir le décor presque net. En allant vers la droite, le verre se teinte et se dépolit, jusqu'à un fond entièrement opaque tout à droite. Seuls les fonds sont affectés : le texte, les boutons et les onglets restent opaques.</value>
+  </data>
   <data name="About.Links" xml:space="preserve">
     <value>LIENS</value>
   </data>
