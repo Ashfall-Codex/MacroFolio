@@ -89,13 +89,15 @@ public sealed unsafe class ChatSenderService
 
     public bool IsSending => sendQueue.Count > 0;
     public int PendingCount => sendQueue.Count;
-    public int SendDirect(string text)
+    public int SendDirect(string text, out AutomationGuard.Verdict verdict)
     {
         var chunks = Split(text);
+        verdict = AutomationGuard.Check(chunks);
+        if (verdict != AutomationGuard.Verdict.Allowed) return 0;
+
         foreach (var chunk in chunks)
             sendQueue.Enqueue(chunk);
 
-        // Fire the first one immediately on the next tick.
         if (chunks.Count > 0)
             sendTimer = 0f;
 
@@ -106,6 +108,13 @@ public sealed unsafe class ChatSenderService
     public void Tick(float deltaSeconds)
     {
         if (sendQueue.Count == 0) return;
+
+        // Entering combat or a duty mid-send drops the remaining messages.
+        if (AutomationGuard.CheckContext() != AutomationGuard.Verdict.Allowed)
+        {
+            sendQueue.Clear();
+            return;
+        }
 
         sendTimer -= deltaSeconds;
         if (sendTimer > 0f) return;

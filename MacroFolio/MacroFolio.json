@@ -16,8 +16,8 @@
   ],
   "InternalName": "MacroFolio",
   "AssemblyVersion": "0.0.1.0",
-  "RepoUrl": "https://github.com/kedaewyn/MacroFolio",
-  "IconUrl": "",
+  "RepoUrl": "https://github.com/Ashfall-Codex/MacroFolio",
+  "IconUrl": "https://repo.ashfall-codex.dev/img/macrofolio.png",
   "ApplicableVersion": "any",
   "DalamudApiLevel": 15
 }

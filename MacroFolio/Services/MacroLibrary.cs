@@ -54,20 +54,6 @@ public sealed class MacroLibrary
 
     private readonly List<MacroConflict> pendingConflicts = new();
     public IReadOnlyList<MacroConflict> PendingConflicts => pendingConflicts;
-
-    /// <summary>
-    /// Compare the cache with the in-game slots without ever silently overwriting
-    /// the game. Safe cases are auto-resolved; genuine divergences are recorded as
-    /// <see cref="PendingConflicts"/> for the user to arbitrate. Runs on login and
-    /// when the native Macro window closes.
-    ///
-    /// Auto-resolved (no prompt):
-    ///  - Icon-only reset: same name + lines, only the icon differs → re-impose our
-    ///    cached icon (the game resets out-of-palette icons on save).
-    ///  - External clear: the game slot is empty → mark the macro cache-only.
-    /// Everything else (name or lines changed in-game, e.g. edited via the vanilla
-    /// tool while the plugin was unloaded) is a CONFLICT and is left untouched.
-    /// </summary>
     public void ReconcileWithGame()
     {
         if (GetCurrentCharacter() is null) return;
@@ -126,12 +112,12 @@ public sealed class MacroLibrary
             m.Name = game.Name;
             m.IconId = game.IconId;
             m.Lines = game.Lines;
+            m.CreatedByMacroFolio = false;
             SaveCurrent();
         }
         pendingConflicts.RemoveAll(c => c.Set == conflict.Set && c.Slot == conflict.Slot);
     }
 
-    /// <summary>Resolve a conflict by re-imposing MacroFolio's cached version in-game.</summary>
     public void ResolveRestoreCache(MacroConflict conflict)
     {
         EnsureLoaded();
@@ -166,6 +152,7 @@ public sealed class MacroLibrary
             Lines = lines.Take(MacroService.MaxLinesPerMacro).ToList(),
             Notes = notes?.Take(MacroService.MaxLinesPerMacro).ToList() ?? new List<string>(),
             StartOffset = startOffset,
+            CreatedByMacroFolio = true,
         };
         var free = FindFreeSlot(set);
         if (free.HasValue)
@@ -235,6 +222,7 @@ public sealed class MacroLibrary
         macro.Lines = lines.Take(MacroService.MaxLinesPerMacro).ToList();
         macro.Notes = notes?.Take(MacroService.MaxLinesPerMacro).ToList() ?? new List<string>();
         macro.StartOffset = startOffset;
+        macro.CreatedByMacroFolio = true;
 
         if (macro.IsActive)
             macroService.Write(set, macro.GameSlot!.Value, ToEntry(macro));
@@ -274,17 +262,22 @@ public sealed class MacroLibrary
         macroService.ExecuteSlot(set, slot);
     }
 
-    public enum PreviewResult { Ok, NoFreeSlot, Empty }
-
-    // Timed preview of a long sequence: it is split into 15-line chunks, each run
-    // on a scratch slot; the next chunk fires after the previous one's total
-    // <wait> duration (so it mirrors the real chained-macro playback).
+    public enum PreviewResult { Ok, NoFreeSlot, Empty, CombatCommand, InCombat, InInstance }
     private readonly Queue<List<string>> previewQueue = new();
     private MacroSet previewSet;
     private int? previewSlot;
     private float previewTimer;
 
     public bool IsPreviewing => previewQueue.Count > 0;
+    
+    public bool IsMacroFolioMacro(MacroSet set, int slot, MacroEntry game)
+    {
+        if (GetCurrentCharacter() is null) return false;
+        EnsureLoaded();
+        var m = Pick(set).FirstOrDefault(x => x.IsActive && x.GameSlot == slot);
+        if (m is null || !m.CreatedByMacroFolio) return false;
+        return m.Name == game.Name || LinesEqual(m.Lines, game.Lines);
+    }
 
     public PreviewResult PreviewRun(MacroSet set, IReadOnlyList<string> lines)
     {
@@ -293,6 +286,13 @@ public sealed class MacroLibrary
 
         var body = lines.Where(l => l.Trim().Length > 0).ToList();
         if (body.Count == 0) return PreviewResult.Empty;
+
+        switch (AutomationGuard.Check(body))
+        {
+            case AutomationGuard.Verdict.CombatCommand: return PreviewResult.CombatCommand;
+            case AutomationGuard.Verdict.InCombat: return PreviewResult.InCombat;
+            case AutomationGuard.Verdict.InInstance: return PreviewResult.InInstance;
+        }
 
         var slot = FindFreeSlot(set);
         if (slot is null) return PreviewResult.NoFreeSlot;
@@ -309,14 +309,19 @@ public sealed class MacroLibrary
 
         previewSet = set;
         previewSlot = slot.Value;
-        previewTimer = 0f; // first chunk fires on the next tick
+        previewTimer = 0f;
         return PreviewResult.Ok;
     }
 
-    /// <summary>Advance the timed multi-chunk preview. Call once per frame.</summary>
     public void TickPreview(float deltaSeconds)
     {
         if (previewQueue.Count == 0 || previewSlot is null) return;
+
+        if (AutomationGuard.CheckContext() != AutomationGuard.Verdict.Allowed)
+        {
+            StopPreview();
+            return;
+        }
 
         previewTimer -= deltaSeconds;
         if (previewTimer > 0f) return;
@@ -342,6 +347,14 @@ public sealed class MacroLibrary
             macroService.Clear(previewSet, previewSlot.Value);
             previewSlot = null;
         }
+    }
+
+    public void StopPreview()
+    {
+        previewQueue.Clear();
+        if (previewSlot is { } slot)
+            macroService.Clear(previewSet, slot);
+        previewSlot = null;
     }
 
     private static float SumWaits(IEnumerable<string> lines)
@@ -448,6 +461,7 @@ public sealed class MacroLibrary
                 existing.Name = entry.Name;
                 existing.IconId = entry.IconId;
                 existing.Lines = new List<string>(entry.Lines);
+                existing.CreatedByMacroFolio = true;
             }
             else
             {
@@ -458,6 +472,7 @@ public sealed class MacroLibrary
                     Name = entry.Name,
                     IconId = entry.IconId,
                     Lines = new List<string>(entry.Lines),
+                    CreatedByMacroFolio = true,
                 });
             }
 
@@ -488,11 +503,7 @@ public sealed class MacroLibrary
             })
             .ToList();
     }
-
-    // Reconcile in-memory state with the game:
-    //   game has content + we don't track it → adopt (new cache entry)
-    //   game empty + we track it as active   → mark cache-only (external clear)
-    //   game has content + we track it       → game wins, refresh fields
+    
     private void SyncWithGame(MacroSet set)
     {
         var live = macroService.Read(set);
@@ -519,23 +530,17 @@ public sealed class MacroLibrary
                 else
                 {
                     var contentDiffers = tracked.Name != game.Name || !LinesEqual(tracked.Lines, game.Lines);
-
-                    // If a conflict is pending on this slot, NEVER overwrite the
-                    // cache with the game version: the game copy may be a truncated
-                    // save and the user hasn't decided yet (Restaurer / Garder).
+                    
                     var hasConflict = pendingConflicts.Any(c => c.Set == set && c.Slot == slot);
 
                     if (contentDiffers && !hasConflict)
                     {
-                        // Genuine external edit that we haven't flagged yet: record a
-                        // conflict instead of silently adopting it. Keeps the cache
-                        // intact so "Restaurer MacroFolio" can re-impose it.
+
                         pendingConflicts.Add(new MacroConflict(
                             set, slot, tracked.Id, tracked.Name, game.Name,
                             new List<string>(tracked.Lines), new List<string>(game.Lines)));
                     }
 
-                    // Icon-only reset (same content): re-impose our cached icon.
                     if (!contentDiffers)
                     {
                         if (tracked.IconId == 0)
@@ -618,6 +623,7 @@ public sealed class MacroLibrary
                 existing.Name = chunkName;
                 existing.IconId = iconId;
                 existing.Lines = new List<string>(chunkLines);
+                existing.CreatedByMacroFolio = true;
             }
             else
             {
@@ -634,6 +640,7 @@ public sealed class MacroLibrary
                     Name = chunkName,
                     IconId = iconId,
                     Lines = new List<string>(chunkLines),
+                    CreatedByMacroFolio = true,
                 });
             }
 

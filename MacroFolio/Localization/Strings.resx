@@ -907,4 +907,37 @@ The {1} macros of the board will be written to their target slots. Active macros
   <data name="Draft.RunFrom" xml:space="preserve">
     <value>from line</value>
   </data>
+  <data name="Toolbar.NewMacro" xml:space="preserve">
+    <value>New macro</value>
+  </data>
+  <data name="Search.Clear" xml:space="preserve">
+    <value>Clear search</value>
+  </data>
+  <data name="Empty.Textes.Title" xml:space="preserve">
+    <value>No texts yet</value>
+  </data>
+  <data name="Empty.Textes.Body" xml:space="preserve">
+    <value>Save your roleplay texts to send them to the chat in one click.</value>
+  </data>
+  <data name="Empty.Drafts.Title" xml:space="preserve">
+    <value>No drafts yet</value>
+  </data>
+  <data name="Empty.Drafts.Body" xml:space="preserve">
+    <value>Write long sequences without the 15-line limit, then publish them as chained macros.</value>
+  </data>
+  <data name="Empty.Planches.Title" xml:space="preserve">
+    <value>No boards yet</value>
+  </data>
+  <data name="Guard.CombatCommand" xml:space="preserve">
+    <value>Combat actions (/ac…) can't be run automatically. Put them in a regular macro.</value>
+  </data>
+  <data name="Guard.InCombat" xml:space="preserve">
+    <value>Unavailable in combat.</value>
+  </data>
+  <data name="Guard.InInstance" xml:space="preserve">
+    <value>Unavailable in instances, except in Explorer Mode, on the Island Sanctuary, in housing and inn rooms.</value>
+  </data>
+  <data name="Guard.MacroBlocked" xml:space="preserve">
+    <value>This MacroFolio macro uses a combat action or chains to the next macro: it can't run in instances, except in Explorer Mode.</value>
+  </data>
 </root>

@@ -9,7 +9,7 @@ internal static class Constants
     public static readonly string[] CommandAliases = { "/mfolio" };
 
     public const string Author = "Keda";
-    public const string GitHubUrl = "https://github.com/kedaewyn/MacroFolio";
+    public const string GitHubUrl = "https://github.com/Ashfall-Codex/MacroFolio";
     public static string PluginVersion =>
         Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "0.0.0";
 }

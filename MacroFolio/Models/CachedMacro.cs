@@ -18,6 +18,8 @@ public sealed class CachedMacro
     
     public float StartOffset { get; set; }
 
+    public bool CreatedByMacroFolio { get; set; }
+
     [JsonIgnore]
     public bool IsActive => GameSlot.HasValue;
 }

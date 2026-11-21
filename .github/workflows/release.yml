@@ -1,0 +1,112 @@
+name: Publication d'une release
+
+# Déclenché par un tag signé vX.Y.Z poussé sur un commit de main, ou vX.Y.Z.B (version complète)
+# pour un correctif d'une version déjà publiée.
+# Le zip est compilé ici à partir du tag : la release ne dépend d'aucun fichier local.
+# Le dépôt de plugins récupère ensuite latest.zip depuis la release.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Compilation et publication
+    runs-on: ubuntu-latest
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+      # Archive produite par le packager Dalamud du SDK (DLL, manifeste, ressources localisées)
+      PACKAGE: MacroFolio/bin/Release/MacroFolio/latest.zip
+      MANIFEST: MacroFolio/bin/Release/MacroFolio/MacroFolio.json
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Le tag doit avoir la forme vX.Y.Z et pointer sur un commit de main
+        run: |
+          [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?$ ]] \
+            || { echo "::error::$GITHUB_REF_NAME n'est pas un tag vX.Y.Z (pas de bêtas)"; exit 1; }
+          git fetch -q origin main
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main \
+            || { echo "::error::$GITHUB_REF_NAME ne pointe pas sur un commit de main"; exit 1; }
+
+      - name: Configuration .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      # Canal stable de Dalamud, celui des joueurs (la CI de build.yml utilise staging pour voir venir)
+      - name: Préparation de l'environnement Dalamud
+        run: |
+          DALAMUD_PATH="$HOME/.xlcore/dalamud/Hooks/dev"
+          mkdir -p "$DALAMUD_PATH"
+          curl -fsSL https://goatcorp.github.io/dalamud-distrib/latest.zip -o dalamud.zip
+          unzip -q -o dalamud.zip -d "$DALAMUD_PATH"
+          rm -f dalamud.zip
+
+      - name: Restauration des dépendances
+        run: dotnet restore MacroFolio/MacroFolio.csproj --locked-mode
+
+      - name: Compilation
+        run: dotnet build MacroFolio/MacroFolio.csproj --no-restore --configuration Release --nologo -p:ContinuousIntegrationBuild=true
+
+      - name: Vérification du paquet et du patchnote
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test -f "$PACKAGE" || { echo "::error::$PACKAGE absent"; exit 1; }
+          entries=$(unzip -Z1 "$PACKAGE")
+          for f in MacroFolio.json MacroFolio.dll fr/MacroFolio.resources.dll; do
+            grep -Fxq "$f" <<< "$entries" || { echo "::error::$f absent de latest.zip"; exit 1; }
+          done
+          if grep -qE '(^|/)(\.DS_Store|latest\.zip)$' <<< "$entries"; then
+            echo "::error::latest.zip contient des fichiers parasites"; exit 1
+          fi
+
+          version=$(unzip -p "$PACKAGE" MacroFolio.json | jq -er '.AssemblyVersion')
+          [ "$version" = "$(jq -er '.AssemblyVersion' "$MANIFEST")" ] \
+            || { echo "::error::le manifeste du zip et celui du build diffèrent"; exit 1; }
+          short=$(cut -d. -f1-3 <<< "$version")
+          build=$(cut -d. -f4 <<< "$version")
+          [ "v$short" = "$GITHUB_REF_NAME" ] || [ "v$version" = "$GITHUB_REF_NAME" ] \
+            || { echo "::error::le tag $GITHUB_REF_NAME ne correspond pas à la version compilée $version"; exit 1; }
+
+          # Seule la toute première release s'en passe : elle renvoie au README, qui présente tout le plugin.
+          notes="release-notes/$short.md"
+          previous=$(gh release list -R "$GITHUB_REPOSITORY" -L 1 --json tagName -q 'length')
+          if [ ! -f "$notes" ] && [ "$previous" = "0" ]; then
+            notes="$RUNNER_TEMP/notes.md"
+            printf 'Première version publiée de MacroFolio (build %s).\n\nFonctionnalités, installation et commandes : voir le [README](https://github.com/%s#readme).\n' \
+              "$version" "$GITHUB_REPOSITORY" > "$notes"
+          else
+            test -f "$notes" || { echo "::error::$notes absent du commit tagué"; exit 1; }
+            grep -qE "Build $build([^0-9]|$)" "$notes" || { echo "::error::$notes ne mentionne pas « Build $build »"; exit 1; }
+            if grep -q '{' "$notes"; then echo "::error::$notes contient encore des champs {…}"; exit 1; fi
+          fi
+
+          echo "notes=$notes" >> "$GITHUB_OUTPUT"
+          echo "title=V${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          echo "Build $version, API Dalamud $(jq -r '.DalamudApiLevel' "$MANIFEST"), $(du -h "$PACKAGE" | cut -f1)"
+          echo "$entries"
+
+      - name: Publication sur GitHub
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" "$PACKAGE" \
+            --verify-tag \
+            --title "${{ steps.check.outputs.title }}" \
+            --notes-file "${{ steps.check.outputs.notes }}" \
+            --latest

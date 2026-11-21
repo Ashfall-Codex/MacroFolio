@@ -83,7 +83,6 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
 
     private static readonly Vector4 BorderEnabledColor = new(0.30f, 0.85f, 0.30f, 1f);
     private static readonly Vector4 BorderDisabledColor = new(0.90f, 0.30f, 0.30f, 1f);
-    private static readonly Vector4 PlusBorderColor = new(0.55f, 0.55f, 0.55f, 1f);
 
     public MainWindow(
         MacroLibrary library,
@@ -190,21 +189,18 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         if (!ImGui.BeginPopupModal("##macro_conflict", ImGuiWindowFlags.AlwaysAutoResize))
             return;
 
-        ImGui.TextColored(new Vector4(0.90f, 0.55f, 0.20f, 1f), Loc.Get("Conflict.Header"));
+        ImGui.TextColored(MacroFolioTheme.WarningColor, Loc.Get("Conflict.Header"));
         ImGui.Separator();
         ImGuiHelpers.ScaledDummy(2f);
         ImGui.TextWrapped(Loc.Get("Conflict.Intro"));
         ImGuiHelpers.ScaledDummy(6f);
-
-        // Resolve the first pending conflict; the modal stays up for the next one.
-        // PendingConflicts is live, so snapshot the count before any button mutates it.
+        
         var pendingCount = conflicts.Count;
         var c = conflicts[0];
         var setLabel = c.Set == MacroSet.Individual ? IndividualSetLabel() : Loc.Get("Set.Shared");
         ImGui.TextDisabled(string.Format(Loc.Get("Conflict.SlotInfo"), setLabel, c.Slot));
         ImGuiHelpers.ScaledDummy(4f);
 
-        // Side-by-side line diff: game version (left) vs MacroFolio cache (right).
         var gameName = string.IsNullOrEmpty(c.GameName) ? Loc.Get("Common.Unnamed") : c.GameName;
         var cacheName = string.IsNullOrEmpty(c.CacheName) ? Loc.Get("Common.Unnamed") : c.CacheName;
         var colW = 240f * ImGuiHelpers.GlobalScale;
@@ -255,7 +251,7 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         if (pendingCount > 1)
         {
             ImGui.SameLine();
-            if (ImGui.Button(string.Format(Loc.Get("Conflict.RestoreAll"), pendingCount)))
+            if (Buttons.Quiet(string.Format(Loc.Get("Conflict.RestoreAll"), pendingCount)))
                 library.ResolveRestoreCacheAll();
             if (ImGui.IsItemHovered())
             {
@@ -265,21 +261,18 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
             }
         }
 
-        // Close automatically once all conflicts are resolved.
         if (library.PendingConflicts.Count == 0)
             ImGui.CloseCurrentPopup();
 
         ImGui.EndPopup();
     }
-
-    // One side of the conflict diff: the macro name then its lines, with each line
-    // highlighted (orange) when it differs from the same line in the other version.
+    
     private static void DrawConflictColumn(
         string name, IReadOnlyList<string> lines, IReadOnlyList<string> other,
         float width, float height, string id)
     {
-        var diffColor = new Vector4(0.95f, 0.65f, 0.25f, 1f);
-        var sameColor = new Vector4(0.80f, 0.80f, 0.80f, 1f);
+        var diffColor = MacroFolioTheme.WarningColor;
+        var sameColor = MacroFolioTheme.TextSecondary;
 
         ImGui.TextDisabled(name);
         if (ImGui.BeginChild(id, new Vector2(width, height), true))
@@ -333,23 +326,22 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
             ? Loc.Get("Macros.Delete.WarnActive")
             : Loc.Get("Macros.Delete.WarnCached"));
 
-        ImGui.Spacing();
-        ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.55f, 0.18f, 0.18f, 1f));
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.70f, 0.22f, 0.22f, 1f));
-        if (ImGui.Button(Loc.Get("Ctx.Delete")))
+        ImGuiHelpers.ScaledDummy(6f);
+        if (Buttons.Quiet(Loc.Get("Common.Cancel") + "##macro_del_cancel") || Buttons.EscapePressed())
         {
-            library.Delete(macrosActiveSet, macro.Id);
-            if (selectedId == macro.Id) selectedId = null;
             requestDeleteMacroId = null;
             ImGui.CloseCurrentPopup();
         }
-        ImGui.PopStyleColor(2);
-
-        ImGui.SameLine();
-        if (ImGui.Button(Loc.Get("Common.Cancel") + "##macro_del_cancel"))
+        else
         {
-            requestDeleteMacroId = null;
-            ImGui.CloseCurrentPopup();
+            ImGui.SameLine();
+            if (Buttons.DestructiveFilled(Loc.Get("Ctx.Delete") + "##macro_del_yes"))
+            {
+                library.Delete(macrosActiveSet, macro.Id);
+                if (selectedId == macro.Id) selectedId = null;
+                requestDeleteMacroId = null;
+                ImGui.CloseCurrentPopup();
+            }
         }
 
         ImGui.EndPopup();
@@ -432,7 +424,7 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
 
         if (!library.IsAvailable)
         {
-            ImGui.TextColored(BorderDisabledColor, Loc.Get("Macros.LoginRequired"));
+            EmptyState.Draw(FontAwesomeIcon.UserLock, Loc.Get("Macros.LoginRequired"));
             return;
         }
 
@@ -539,7 +531,7 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
             var label = slot.ToString();
             var textSize = ImGui.CalcTextSize(label);
             drawList.AddText(cursorScreen + (size - textSize) / 2f,
-                ImGui.GetColorU32(new Vector4(0.45f, 0.45f, 0.45f, 1f)), label);
+                ImGui.GetColorU32(MacroFolioTheme.TextDim with { W = 0.75f }), label);
             DrawCellBorder(cursorScreen, size, drawList, MacroFolioTheme.ThemeBorder, 1f);
         }
 
@@ -561,7 +553,7 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         }
         var headerHovered = ImGui.IsItemHovered();
         drawList.AddText(headerPos + new Vector2(0, 3f * ImGuiHelpers.GlobalScale),
-            ImGui.GetColorU32(headerHovered ? MacroFolioTheme.AccentColor : MacroFolioTheme.AccentColor with { W = 0.7f }),
+            ImGui.GetColorU32(headerHovered ? MacroFolioTheme.TextStrong : MacroFolioTheme.TextSecondary),
             Loc.Get("Cache.Header"));
 
         ImGuiHelpers.ScaledDummy(2f);
@@ -670,22 +662,22 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
 
         ImGui.TextUnformatted(string.Format(Loc.Get("Overwrite.Confirm"), ow.Slot, ow.OccupantName));
         ImGui.TextWrapped(Loc.Get("Overwrite.Detail"));
-        ImGui.Spacing();
+        ImGuiHelpers.ScaledDummy(6f);
 
-        ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.20f, 0.55f, 0.25f, 1f));
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.25f, 0.65f, 0.30f, 1f));
-        if (ImGui.Button(Loc.Get("Overwrite.Replace")))
+        if (Buttons.Quiet(Loc.Get("Common.Cancel") + "##overwrite") || Buttons.EscapePressed())
         {
-            library.ActivateAtSlot(macrosActiveSet, ow.Id, ow.Slot);
             pendingOverwrite = null;
             ImGui.CloseCurrentPopup();
         }
-        ImGui.PopStyleColor(2);
-        ImGui.SameLine();
-        if (ImGui.Button(Loc.Get("Common.Cancel") + "##overwrite"))
+        else
         {
-            pendingOverwrite = null;
-            ImGui.CloseCurrentPopup();
+            ImGui.SameLine();
+            if (Buttons.Primary(Loc.Get("Overwrite.Replace") + "##overwrite_yes"))
+            {
+                library.ActivateAtSlot(macrosActiveSet, ow.Id, ow.Slot);
+                pendingOverwrite = null;
+                ImGui.CloseCurrentPopup();
+            }
         }
 
         ImGui.EndPopup();
@@ -969,20 +961,17 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
 
         ImGui.Spacing();
         ImGui.TextDisabled(Loc.Get("Export.Format"));
-        if (ImGui.RadioButton(Loc.Get("Export.FormatJson") + "##exp_json",
-                exportFormat == ExportFormat.JsonBundle))
-            exportFormat = ExportFormat.JsonBundle;
-        if (ImGui.RadioButton(Loc.Get("Export.FormatTxt") + "##exp_txt",
-                exportFormat == ExportFormat.TxtIndividual))
-            exportFormat = ExportFormat.TxtIndividual;
+        exportFormat = (ExportFormat)SegmentedControl.Draw("exp_format",
+            [Loc.Get("Export.FormatJson"), Loc.Get("Export.FormatTxt")],
+            (int)exportFormat, 380f * ImGuiHelpers.GlobalScale);
 
         ImGui.Spacing();
         ImGui.TextDisabled(Loc.Get("Export.Selection"));
         ImGui.SameLine();
-        if (ImGui.SmallButton(Loc.Get("Export.SelectAll") + "##exp_all"))
+        if (Buttons.Quiet(Loc.Get("Export.SelectAll") + "##exp_all"))
             foreach (var m in macros) exportSelectedIds.Add(m.Id);
         ImGui.SameLine();
-        if (ImGui.SmallButton(Loc.Get("Export.SelectNone") + "##exp_none"))
+        if (Buttons.Quiet(Loc.Get("Export.SelectNone") + "##exp_none"))
             exportSelectedIds.Clear();
 
         var listH = 240f * ImGuiHelpers.GlobalScale;
@@ -1006,22 +995,23 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         var count = exportSelectedIds.Count;
         ImGui.TextDisabled(string.Format(Loc.Get("Export.SelectedCount"), count));
 
-        ImGui.Spacing();
+        ImGuiHelpers.ScaledDummy(6f);
         var canExport = count > 0;
-        if (!canExport) ImGui.BeginDisabled();
-        ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.20f, 0.55f, 0.25f, 1f));
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.25f, 0.65f, 0.30f, 1f));
-        if (ImGui.Button(Loc.Get("Toolbar.Export")))
+        if (Buttons.Quiet(Loc.Get("Common.Cancel") + "##exp_cancel") || Buttons.EscapePressed())
         {
-            RunExport();
             ImGui.CloseCurrentPopup();
         }
-        ImGui.PopStyleColor(2);
-        if (!canExport) ImGui.EndDisabled();
-
-        ImGui.SameLine();
-        if (ImGui.Button(Loc.Get("Common.Cancel") + "##exp_cancel"))
-            ImGui.CloseCurrentPopup();
+        else
+        {
+            ImGui.SameLine();
+            if (!canExport) ImGui.BeginDisabled();
+            if (Buttons.Primary(Loc.Get("Toolbar.Export") + "##exp_go"))
+            {
+                RunExport();
+                ImGui.CloseCurrentPopup();
+            }
+            if (!canExport) ImGui.EndDisabled();
+        }
 
         ImGui.EndPopup();
     }
@@ -1069,28 +1059,33 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
     private void DrawToolbar()
     {
         var spacing = 6f * ImGuiHelpers.GlobalScale;
+        var newLabel = Loc.Get("Toolbar.NewMacro");
         var cacheLabel = Loc.Get("Toolbar.CacheAll");
         var importLabel = Loc.Get("Toolbar.Import");
         var exportLabel = Loc.Get("Toolbar.Export");
-        var cacheW = ImGui.CalcTextSize(cacheLabel).X + ImGui.GetStyle().FramePadding.X * 2;
-        var importW = ImGui.CalcTextSize(importLabel).X + ImGui.GetStyle().FramePadding.X * 2;
-        var exportW = ImGui.CalcTextSize(exportLabel).X + ImGui.GetStyle().FramePadding.X * 2;
-        var totalW = cacheW + importW + exportW + spacing * 2;
+        var totalW = Buttons.TextWidth(cacheLabel) + Buttons.TextWidth(importLabel)
+                     + Buttons.TextWidth(exportLabel) + Buttons.PrimaryWidth(newLabel) + spacing * 3;
 
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + ImGui.GetContentRegionAvail().X - totalW);
 
         var hasActive = library.IsAvailable && library.ActiveCount(macrosActiveSet) > 0;
         if (!hasActive) ImGui.BeginDisabled();
-        if (ImGui.Button(cacheLabel))
+        if (Buttons.Quiet(cacheLabel))
             requestCacheAll = true;
         if (!hasActive) ImGui.EndDisabled();
 
         ImGui.SameLine(0f, spacing);
-        if (ImGui.Button(importLabel))
+        if (Buttons.Quiet(importLabel))
             OpenImportDialog();
         ImGui.SameLine(0f, spacing);
-        if (ImGui.Button(exportLabel))
+        if (Buttons.Quiet(exportLabel))
             OpenExportDialog();
+
+        ImGui.SameLine(0f, spacing);
+        if (!library.IsAvailable) ImGui.BeginDisabled();
+        if (Buttons.Primary(newLabel, Buttons.PrimaryWidth(newLabel)))
+            createWizard.OpenFor(macrosActiveSet);
+        if (!library.IsAvailable) ImGui.EndDisabled();
 
         if (requestCacheAll)
         {
@@ -1110,62 +1105,40 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         var count = library.ActiveCount(macrosActiveSet);
         ImGui.TextUnformatted(string.Format(Loc.Get("CacheAll.Confirm"), count, setLabel));
         ImGui.TextWrapped(Loc.Get("CacheAll.Detail"));
-        ImGui.Spacing();
+        ImGuiHelpers.ScaledDummy(6f);
 
-        ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.55f, 0.40f, 0.15f, 1f));
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.65f, 0.48f, 0.18f, 1f));
-        if (ImGui.Button(Loc.Get("Toolbar.CacheAll")))
+        if (Buttons.Quiet(Loc.Get("Common.Cancel") + "##cache_all") || Buttons.EscapePressed())
         {
-            library.DisableAll(macrosActiveSet);
-            selectedId = null;
             ImGui.CloseCurrentPopup();
         }
-        ImGui.PopStyleColor(2);
-        ImGui.SameLine();
-        if (ImGui.Button(Loc.Get("Common.Cancel") + "##cache_all"))
-            ImGui.CloseCurrentPopup();
+        else
+        {
+            ImGui.SameLine();
+            if (Buttons.Primary(Loc.Get("Toolbar.CacheAll") + "##cache_all_yes"))
+            {
+                library.DisableAll(macrosActiveSet);
+                selectedId = null;
+                ImGui.CloseCurrentPopup();
+            }
+        }
 
         ImGui.EndPopup();
     }
 
     private void DrawSetTabs()
     {
-        var characterName = Plugin.ObjectTable.LocalPlayer?.Name.ToString();
-        var individualLabel = string.IsNullOrEmpty(characterName)
-            ? Loc.Get("Set.CurrentCharacter")
-            : characterName;
-
-        var avail = ImGui.GetContentRegionAvail().X;
-        var spacing = 6f * ImGuiHelpers.GlobalScale;
-        var btnW = (avail - spacing) / 2f;
-        var btnH = 28f * ImGuiHelpers.GlobalScale;
-
-        DrawSetTabButton(individualLabel, MacroSet.Individual, new Vector2(btnW, btnH));
-        ImGui.SameLine(0f, spacing);
-        DrawSetTabButton(Loc.Get("Set.Shared"), MacroSet.Shared, new Vector2(btnW, btnH));
+        var set = SetPicker("macro_set", macrosActiveSet, ImGui.GetContentRegionAvail().X);
+        if (set == macrosActiveSet) return;
+        macrosActiveSet = set;
+        selectedId = null;
     }
 
-    private void DrawSetTabButton(string label, MacroSet set, Vector2 size)
+    // Character / shared picker shared by every view and dialog that targets a macro set.
+    private static MacroSet SetPicker(string id, MacroSet current, float width)
     {
-        var isActive = macrosActiveSet == set;
-        var bg = isActive ? MacroFolioTheme.AccentColor : MacroFolioTheme.ThemeButtonBg;
-        var hover = isActive ? MacroFolioTheme.AccentColor : MacroFolioTheme.ThemeButtonHovered;
-        var textColor = isActive ? MacroFolioTheme.ThemeWindowBg : MacroFolioTheme.AccentColor;
-
-        ImGui.PushStyleColor(ImGuiCol.Button, bg);
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, hover);
-        ImGui.PushStyleColor(ImGuiCol.ButtonActive, MacroFolioTheme.ThemeButtonActive);
-        ImGui.PushStyleColor(ImGuiCol.Text, textColor);
-        ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 4f * ImGuiHelpers.GlobalScale);
-
-        if (ImGui.Button(label + "##set_" + set, size))
-        {
-            macrosActiveSet = set;
-            selectedId = null;
-        }
-
-        ImGui.PopStyleColor(4);
-        ImGui.PopStyleVar();
+        var picked = SegmentedControl.Draw(id, [IndividualSetLabel(), Loc.Get("Set.Shared")],
+            current == MacroSet.Individual ? 0 : 1, width);
+        return picked == 0 ? MacroSet.Individual : MacroSet.Shared;
     }
 
     private void DrawPlusCell(float cellSize)
@@ -1179,7 +1152,7 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
             createWizard.OpenFor(macrosActiveSet);
 
         var hovered = ImGui.IsItemHovered();
-        var borderColor = hovered ? MacroFolioTheme.AccentColor : PlusBorderColor;
+        var borderColor = hovered ? MacroFolioTheme.TextStrong : MacroFolioTheme.TextDim;
 
         drawList.AddRect(
             cursorScreen,
@@ -1213,6 +1186,7 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
     private string? requestDeleteTexteId;
     private string? texteFeedback;
     private double texteFeedbackUntil;
+    private bool texteFeedbackIsWarning;
     private const string TexteDragType = "MF_TEXTE";
     private string? draggedTexteId;
     private (string Id, int TargetIndex)? pendingTexteMove;
@@ -1228,30 +1202,28 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
             return;
         }
 
-        // Toolbar: new text (right-aligned).
-        var newLabel = Loc.Get("Texte.New");
-        var newW = ImGui.CalcTextSize(newLabel).X + ImGui.GetStyle().FramePadding.X * 2;
-        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + ImGui.GetContentRegionAvail().X - newW);
-        if (ImGui.Button(newLabel))
-        {
-            var t = texteLibrary.Create(Loc.Get("Texte.DefaultName"));
-            OpenTexte(t);
-        }
-
-        ImGuiHelpers.ScaledDummy(2f);
-        if (!string.IsNullOrEmpty(texteFeedback) && ImGui.GetTime() < texteFeedbackUntil)
-            ImGui.TextColored(new Vector4(0.4f, 0.8f, 0.4f, 1f), texteFeedback);
-        else
-            ImGui.TextDisabled(Loc.Get("Texte.Hint"));
-        ImGui.Separator();
-        ImGui.Spacing();
-
         var textes = texteLibrary.ListAll();
         if (textes.Count == 0)
         {
-            ImGui.TextDisabled(Loc.Get("Texte.Empty"));
+            if (EmptyState.Draw(FontAwesomeIcon.CommentDots, Loc.Get("Empty.Textes.Title"),
+                    Loc.Get("Empty.Textes.Body"), Loc.Get("Texte.New")))
+                OpenTexte(texteLibrary.Create(Loc.Get("Texte.DefaultName")));
             return;
         }
+
+        var newLabel = Loc.Get("Texte.New");
+        var newW = Buttons.PrimaryWidth(newLabel);
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + ImGui.GetContentRegionAvail().X - newW);
+        if (Buttons.Primary(newLabel, newW))
+            OpenTexte(texteLibrary.Create(Loc.Get("Texte.DefaultName")));
+
+        ImGuiHelpers.ScaledDummy(2f);
+        if (!string.IsNullOrEmpty(texteFeedback) && ImGui.GetTime() < texteFeedbackUntil)
+            ImGui.TextColored(texteFeedbackIsWarning ? MacroFolioTheme.WarningColor : MacroFolioTheme.SuccessColor, texteFeedback);
+        else
+            ImGui.TextColored(MacroFolioTheme.TextDim, Loc.Get("Texte.Hint"));
+        ImGui.Separator();
+        ImGui.Spacing();
 
         if (ImGui.BeginChild("##textes_list"))
         {
@@ -1283,7 +1255,6 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         var delW = 28f * ImGuiHelpers.GlobalScale;
         var spacing = 4f * ImGuiHelpers.GlobalScale;
 
-        // Grab handle: drag it onto another row to reorder the list.
         ImGui.PushStyleVar(ImGuiStyleVar.SelectableTextAlign, new Vector2(0.5f, 0.5f));
         using (Plugin.PluginInterface.UiBuilder.IconFontFixedWidthHandle.Push())
         {
@@ -1316,26 +1287,16 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         }
 
         ImGui.SameLine(0f, spacing);
-        if (ImGui.Button(Loc.Get("Common.Edit") + "##e"))
+        if (Buttons.Quiet(Loc.Get("Common.Edit") + "##e"))
             OpenTexte(t);
-        
+
         var quickDelete = ImGui.GetIO().KeyCtrl;
         ImGui.SameLine(0f, spacing);
-        if (quickDelete) ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.90f, 0.35f, 0.35f, 1f));
-        using (Plugin.PluginInterface.UiBuilder.IconFontFixedWidthHandle.Push())
+        if (Buttons.QuietIcon(FontAwesomeIcon.Trash, "d", Loc.Get("Texte.Delete.Quick"),
+                quickDelete ? MacroFolioTheme.DangerColor : MacroFolioTheme.TextSecondary, new Vector2(delW, 0)))
         {
-            if (ImGui.Button(FontAwesomeIcon.Trash.ToIconString() + "##d", new Vector2(delW, 0)))
-            {
-                if (quickDelete) texteLibrary.Delete(t.Id);
-                else requestDeleteTexteId = t.Id;
-            }
-        }
-        if (quickDelete) ImGui.PopStyleColor();
-        if (ImGui.IsItemHovered())
-        {
-            ImGui.BeginTooltip();
-            ImGui.TextUnformatted(Loc.Get("Texte.Delete.Quick"));
-            ImGui.EndTooltip();
+            if (quickDelete) texteLibrary.Delete(t.Id);
+            else requestDeleteTexteId = t.Id;
         }
 
         ImGui.PopID();
@@ -1371,24 +1332,35 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
 
         if (t.SendDirectly)
         {
-            var queued = chatSender.SendDirect(t.Content);
+            var queued = chatSender.SendDirect(t.Content, out var verdict);
+            if (verdict != AutomationGuard.Verdict.Allowed)
+            {
+                SetTexteFeedback(GuardMessage(verdict), warning: true);
+                return;
+            }
             SetTexteFeedback(queued > 1
                 ? string.Format(Loc.Get("Texte.Feedback.Queued"), queued, (int)ChatSenderService.SendIntervalSeconds)
                 : string.Format(Loc.Get("Texte.Feedback.Sent"), queued));
         }
         else
         {
-            // Pre-fill mode: copy the (split) text to the clipboard so the player
-            // pastes it into the chat box and presses Enter. The native chat box
-            // can't be filled programmatically without ToS-risky tricks.
             ImGui.SetClipboardText(string.Join("\n", chunks));
             SetTexteFeedback(string.Format(Loc.Get("Texte.Feedback.Copied"), chunks.Count));
         }
     }
 
-    private void SetTexteFeedback(string message)
+    private static string GuardMessage(AutomationGuard.Verdict verdict) => verdict switch
+    {
+        AutomationGuard.Verdict.CombatCommand => Loc.Get("Guard.CombatCommand"),
+        AutomationGuard.Verdict.InCombat => Loc.Get("Guard.InCombat"),
+        AutomationGuard.Verdict.InInstance => Loc.Get("Guard.InInstance"),
+        _ => "",
+    };
+
+    private void SetTexteFeedback(string message, bool warning = false)
     {
         texteFeedback = message;
+        texteFeedbackIsWarning = warning;
         texteFeedbackUntil = ImGui.GetTime() + 4.0;
     }
 
@@ -1403,45 +1375,36 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
     private void DrawTexteEditor()
     {
         if (editingTexte is null) return;
-
-        // Header row: back + save.
-        if (ImGui.Button("← " + Loc.Get("Common.Back")))
+        if (Buttons.Quiet("‹ " + Loc.Get("Common.Back")) || (ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows)
+                                                             && !ImGui.IsAnyItemActive() && ImGui.IsKeyPressed(ImGuiKey.Escape)))
         {
             PersistTexte();
             editingTexte = null;
             return;
         }
         ImGui.SameLine();
-        ImGui.TextDisabled(Loc.Get("Texte.AutoSaved"));
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextColored(MacroFolioTheme.TextDim, Loc.Get("Texte.AutoSaved"));
 
         ImGui.Separator();
         ImGui.Spacing();
-
-        // Title.
         ImGui.SetNextItemWidth(-1);
         if (ImGui.InputTextWithHint("##texte_title", Loc.Get("Texte.TitleHint"), ref texteTitleDraft, 80))
             PersistTexte();
 
         ImGui.Spacing();
 
-        // Send mode toggle.
-        if (ImGui.Checkbox(Loc.Get("Texte.SendDirect"), ref texteSendDirectDraft))
+        if (ToggleSwitch.Draw("##texte_send_direct", Loc.Get("Texte.SendDirect"), ref texteSendDirectDraft,
+                Loc.Get("Texte.SendDirect.Help")))
             PersistTexte();
-        ImGui.SameLine();
-        ImGuiComponentsHelpMarker(Loc.Get("Texte.SendDirect.Help"));
 
         ImGui.Spacing();
 
-        // Content with live character counter and split preview.
         var chars = texteContentDraft.Length;
         var chunks = ChatSenderService.Split(texteContentDraft).Count;
-        ImGui.TextColored(new Vector4(0.55f, 0.55f, 0.55f, 1f),
+        ImGui.TextColored(MacroFolioTheme.TextSecondary,
             string.Format(Loc.Get("Texte.Counter"), chars, chunks));
         ImGui.TextDisabled(Loc.Get("Texte.EditorHint"));
-
-        // The editor takes the upper half; a wrapped read-only preview fills the
-        // lower half (ImGui's multiline input does not word-wrap, so long lines
-        // scroll horizontally — the preview shows the full text reflowed).
         var avail = ImGui.GetContentRegionAvail().Y - 8f * ImGuiHelpers.GlobalScale;
         var editorH = Math.Max(100f * ImGuiHelpers.GlobalScale, avail * 0.5f);
         if (ImGui.InputTextMultiline("##texte_content", ref texteContentDraft,
@@ -1485,38 +1448,25 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         var t = requestDeleteTexteId is null ? null : texteLibrary.GetById(requestDeleteTexteId);
         var name = t is null || string.IsNullOrWhiteSpace(t.Title) ? Loc.Get("Common.Unnamed") : t.Title;
         ImGui.TextUnformatted(string.Format(Loc.Get("Texte.Delete.Confirm"), name));
-        ImGui.Spacing();
+        ImGuiHelpers.ScaledDummy(6f);
 
-        ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.55f, 0.18f, 0.18f, 1f));
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.70f, 0.22f, 0.22f, 1f));
-        if (ImGui.Button(Loc.Get("Common.Delete") + "##texte_del_yes"))
+        if (Buttons.Quiet(Loc.Get("Common.Cancel") + "##texte_del_no") || Buttons.EscapePressed())
         {
-            if (requestDeleteTexteId is not null) texteLibrary.Delete(requestDeleteTexteId);
             requestDeleteTexteId = null;
             ImGui.CloseCurrentPopup();
         }
-        ImGui.PopStyleColor(2);
-        ImGui.SameLine();
-        if (ImGui.Button(Loc.Get("Common.Cancel") + "##texte_del_no"))
+        else
         {
-            requestDeleteTexteId = null;
-            ImGui.CloseCurrentPopup();
+            ImGui.SameLine();
+            if (Buttons.DestructiveFilled(Loc.Get("Common.Delete") + "##texte_del_yes"))
+            {
+                if (requestDeleteTexteId is not null) texteLibrary.Delete(requestDeleteTexteId);
+                requestDeleteTexteId = null;
+                ImGui.CloseCurrentPopup();
+            }
         }
 
         ImGui.EndPopup();
-    }
-
-    private static void ImGuiComponentsHelpMarker(string text)
-    {
-        ImGui.TextDisabled("(?)");
-        if (ImGui.IsItemHovered())
-        {
-            ImGui.BeginTooltip();
-            ImGui.PushTextWrapPos(ImGui.GetFontSize() * 24f);
-            ImGui.TextUnformatted(text);
-            ImGui.PopTextWrapPos();
-            ImGui.EndTooltip();
-        }
     }
 
     private static readonly Vector4 AshfallGold = new(0.831f, 0.686f, 0.416f, 1f);
@@ -1538,25 +1488,25 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
 
         CenteredLine(
             $"v{Constants.PluginVersion}  ·  par {Constants.Author}",
-            new Vector4(0.55f, 0.55f, 0.55f, 1f),
+            MacroFolioTheme.TextDim,
             availW);
 
         ImGuiHelpers.ScaledDummy(14f);
 
         var manifest = Plugin.PluginInterface.Manifest;
         if (!string.IsNullOrEmpty(manifest.Punchline))
-            CenteredBlock(manifest.Punchline, new Vector4(0.75f, 0.75f, 0.75f, 1f), availW);
+            CenteredBlock(manifest.Punchline, MacroFolioTheme.TextSecondary, availW);
 
         if (!string.IsNullOrEmpty(manifest.Description)
             && !string.Equals(manifest.Description, manifest.Punchline, StringComparison.Ordinal))
         {
             ImGuiHelpers.ScaledDummy(4f);
-            CenteredBlock(manifest.Description, new Vector4(0.55f, 0.55f, 0.55f, 1f), availW);
+            CenteredBlock(manifest.Description, MacroFolioTheme.TextDim, availW);
         }
 
         ImGuiHelpers.ScaledDummy(22f);
 
-        CenteredLine(Loc.Get("About.Links"), new Vector4(0.5f, 0.5f, 0.5f, 1f), availW);
+        CenteredLine(Loc.Get("About.Links"), MacroFolioTheme.TextDim, availW);
         ImGuiHelpers.ScaledDummy(6f);
         DrawAboutLinks(availW);
 
@@ -1572,7 +1522,7 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
 
         CenteredLine(
             Loc.Get("About.SlashCommands"),
-            new Vector4(0.5f, 0.5f, 0.5f, 1f),
+            MacroFolioTheme.TextDim,
             availW);
 
         ImGuiHelpers.ScaledDummy(20f);
@@ -1613,7 +1563,7 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
 
     private void DrawLanguageSelector(float availW)
     {
-        CenteredLine(Loc.Get("About.Language").ToUpperInvariant(), new Vector4(0.5f, 0.5f, 0.5f, 1f), availW);
+        CenteredLine(Loc.Get("About.Language").ToUpperInvariant(), MacroFolioTheme.TextDim, availW);
         ImGuiHelpers.ScaledDummy(6f);
 
         var current = Loc.AvailableLanguages
@@ -1642,7 +1592,7 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
 
     private static void DrawGlassSelector(float availW)
     {
-        CenteredLine(Loc.Get("Config.UiGlass").ToUpperInvariant(), new Vector4(0.5f, 0.5f, 0.5f, 1f), availW);
+        CenteredLine(Loc.Get("Config.UiGlass").ToUpperInvariant(), MacroFolioTheme.TextDim, availW);
         ImGuiHelpers.ScaledDummy(6f);
 
         var sliderW = MathF.Min(260f * ImGuiHelpers.GlobalScale, availW);
@@ -1859,15 +1809,16 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         }
 
         DrawLibraryToolbar();
-        DrawLibrarySetTabs();
+        libraryActiveSet = SetPicker("library_set", libraryActiveSet, ImGui.GetContentRegionAvail().X);
         ImGui.Spacing();
 
-        var planches =plancheLibrary.ListForSet(libraryActiveSet);
+        var planches = plancheLibrary.ListForSet(libraryActiveSet);
         if (planches.Count == 0)
         {
             var setLabel = libraryActiveSet == MacroSet.Individual ? IndividualSetLabel() : Loc.Get("Set.Shared");
-            ImGui.TextColored(MacroFolioTheme.AccentColor with { W = 0.6f },
-                string.Format(Loc.Get("Planche.Empty"), setLabel));
+            if (EmptyState.Draw(FontAwesomeIcon.Book, Loc.Get("Empty.Planches.Title"),
+                    string.Format(Loc.Get("Planche.Empty"), setLabel), Loc.Get("Planche.CaptureButton")))
+                OpenCaptureDialog();
             return;
         }
 
@@ -1884,24 +1835,25 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         var spacing = 6f * ImGuiHelpers.GlobalScale;
         var emptyLabel = Loc.Get("Planche.NewEmptyButton");
         var captureLabel = Loc.Get("Planche.CaptureButton");
-        var emptyW = ImGui.CalcTextSize(emptyLabel).X + ImGui.GetStyle().FramePadding.X * 2;
-        var captureW = ImGui.CalcTextSize(captureLabel).X + ImGui.GetStyle().FramePadding.X * 2;
-        var totalW = emptyW + captureW + spacing;
+        var totalW = Buttons.TextWidth(emptyLabel) + Buttons.PrimaryWidth(captureLabel) + spacing;
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + ImGui.GetContentRegionAvail().X - totalW);
 
-        if (ImGui.Button(emptyLabel))
+        if (Buttons.Quiet(emptyLabel))
         {
             emptyCreateSet = libraryActiveSet;
             emptyCreateNameDraft = string.Format(Loc.Get("Planche.DefaultNameEmpty"), DateTime.Now.ToString("HH:mm"));
             requestOpenCreateEmpty = true;
         }
         ImGui.SameLine(0f, spacing);
-        if (ImGui.Button(captureLabel))
-        {
-            captureTargetSet = libraryActiveSet;
-            captureNameDraft = string.Format(Loc.Get("Planche.DefaultNameCapture"), DateTime.Now.ToString("dd/MM/yyyy HH:mm"));
-            requestOpenCapture = true;
-        }
+        if (Buttons.Primary(captureLabel, Buttons.PrimaryWidth(captureLabel)))
+            OpenCaptureDialog();
+    }
+
+    private void OpenCaptureDialog()
+    {
+        captureTargetSet = libraryActiveSet;
+        captureNameDraft = string.Format(Loc.Get("Planche.DefaultNameCapture"), DateTime.Now.ToString("dd/MM/yyyy HH:mm"));
+        requestOpenCapture = true;
     }
 
     private static string IndividualSetLabel()
@@ -1918,37 +1870,6 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         ImGui.SetNextWindowPos(center, ImGuiCond.Always, new Vector2(0.5f, 0.5f));
     }
 
-    private void DrawLibrarySetTabs()
-    {
-        var avail = ImGui.GetContentRegionAvail().X;
-        var spacing = 6f * ImGuiHelpers.GlobalScale;
-        var btnW = (avail - spacing) / 2f;
-        var btnH = 28f * ImGuiHelpers.GlobalScale;
-
-        DrawLibraryTabButton(IndividualSetLabel(), MacroSet.Individual, new Vector2(btnW, btnH));
-        ImGui.SameLine(0f, spacing);
-        DrawLibraryTabButton(Loc.Get("Set.Shared"), MacroSet.Shared, new Vector2(btnW, btnH));
-    }
-
-    private void DrawLibraryTabButton(string label, MacroSet set, Vector2 size)
-    {
-        var isActive = libraryActiveSet == set;
-        var bg = isActive ? MacroFolioTheme.AccentColor : MacroFolioTheme.ThemeButtonBg;
-        var textColor = isActive ? MacroFolioTheme.ThemeWindowBg : MacroFolioTheme.AccentColor;
-
-        ImGui.PushStyleColor(ImGuiCol.Button, bg);
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, bg);
-        ImGui.PushStyleColor(ImGuiCol.ButtonActive, MacroFolioTheme.ThemeButtonActive);
-        ImGui.PushStyleColor(ImGuiCol.Text, textColor);
-        ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 4f * ImGuiHelpers.GlobalScale);
-
-        if (ImGui.Button(label + "##libset_" + set, size))
-            libraryActiveSet = set;
-
-        ImGui.PopStyleColor(4);
-        ImGui.PopStyleVar();
-    }
-
     private void DrawPlancheRow(Planche planche)
     {
         var rowH = 56f * ImGuiHelpers.GlobalScale;
@@ -1961,12 +1882,12 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
             cursor,
             cursor + new Vector2(width, rowH),
             ImGui.GetColorU32(MacroFolioTheme.ThemeButtonBg with { W = MacroFolioTheme.CardAlpha() }),
-            4f * ImGuiHelpers.GlobalScale);
+            MacroFolioTheme.RadiusCard * ImGuiHelpers.GlobalScale);
         drawList.AddRect(
             cursor,
             cursor + new Vector2(width, rowH),
-            ImGui.GetColorU32(MacroFolioTheme.ThemeBorder),
-            4f * ImGuiHelpers.GlobalScale,
+            ImGui.GetColorU32(MacroFolioTheme.ThemeBorder with { W = 0.6f }),
+            MacroFolioTheme.RadiusCard * ImGuiHelpers.GlobalScale,
             ImDrawFlags.None,
             1f);
 
@@ -1979,9 +1900,9 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         var macroWord = planche.Entries.Count > 1 ? Loc.Get("Planche.MacrosPlural") : Loc.Get("Planche.MacroSingular");
         var meta = $"{planche.Entries.Count} {macroWord}  "
                  + $"·  {planche.UpdatedAt.ToLocalTime():dd/MM/yyyy HH:mm}";
-        ImGui.TextColored(new Vector4(0.6f, 0.6f, 0.6f, 1f), meta);
+        ImGui.TextColored(MacroFolioTheme.TextSecondary, meta);
 
-        // Action buttons aligned right.
+        // Action buttons aligned right: apply is the row's main action, delete is quiet red.
         var btnH = 26f * ImGuiHelpers.GlobalScale;
         var modW = 84f * ImGuiHelpers.GlobalScale;
         var applyW = 90f * ImGuiHelpers.GlobalScale;
@@ -1991,19 +1912,16 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         var totalBtnW = modW + applyW + delW + rightSpacing * 2f;
 
         ImGui.SetCursorScreenPos(new Vector2(cursor.X + width - totalBtnW - 12f * ImGuiHelpers.GlobalScale, btnY));
-        if (ImGui.Button(Loc.Get("Planche.Edit") + $"##mod_{planche.Id}", new Vector2(modW, btnH)))
+        if (Buttons.Quiet(Loc.Get("Planche.Edit") + $"##mod_{planche.Id}", modW, btnH))
             requestEditPlancheId = planche.Id;
 
         ImGui.SameLine(0f, rightSpacing);
-        if (ImGui.Button(Loc.Get("Planche.Apply") + $"##apply_{planche.Id}", new Vector2(applyW, btnH)))
+        if (Buttons.Tinted(Loc.Get("Planche.Apply") + $"##apply_{planche.Id}", applyW, btnH))
             requestApplyPlancheId = planche.Id;
 
         ImGui.SameLine(0f, rightSpacing);
-        ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.55f, 0.18f, 0.18f, 1f));
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.70f, 0.22f, 0.22f, 1f));
-        if (ImGui.Button(Loc.Get("Planche.Delete") + $"##del_{planche.Id}", new Vector2(delW, btnH)))
+        if (Buttons.Destructive(Loc.Get("Planche.Delete") + $"##del_{planche.Id}", delW, btnH))
             requestDeletePlancheId = planche.Id;
-        ImGui.PopStyleColor(2);
 
         ImGui.PopID();
 
@@ -2079,38 +1997,36 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         ImGui.Separator();
 
         ImGui.TextDisabled(Loc.Get("Planche.TargetSet"));
-        if (ImGui.RadioButton($"{IndividualSetLabel()}##emp_ind", emptyCreateSet == MacroSet.Individual))
-            emptyCreateSet = MacroSet.Individual;
-        ImGui.SameLine();
-        if (ImGui.RadioButton(Loc.Get("Set.Shared") + "##emp_sh", emptyCreateSet == MacroSet.Shared))
-            emptyCreateSet = MacroSet.Shared;
+        emptyCreateSet = SetPicker("emp_set", emptyCreateSet, 320f * ImGuiHelpers.GlobalScale);
 
         ImGui.Spacing();
         ImGui.SetNextItemWidth(320f * ImGuiHelpers.GlobalScale);
         ImGui.InputTextWithHint("##emp_name", Loc.Get("Planche.NameHint"), ref emptyCreateNameDraft, 64);
 
-        ImGui.Spacing();
+        ImGuiHelpers.ScaledDummy(6f);
         var canCreate = !string.IsNullOrWhiteSpace(emptyCreateNameDraft);
-        if (!canCreate) ImGui.BeginDisabled();
-        if (ImGui.Button(Loc.Get("Planche.CreateAndEdit")))
+        if (Buttons.Quiet(Loc.Get("Common.Cancel") + "##emp") || Buttons.EscapePressed())
         {
-            var created = plancheLibrary.Create(
-                emptyCreateNameDraft.Trim(),
-                emptyCreateSet,
-                Array.Empty<PlancheEntry>());
-            libraryActiveSet = emptyCreateSet;
-            editingPlanche = ClonePlanche(created);
-            editingNameDraft = editingPlanche.Name;
             emptyCreateNameDraft = "";
             ImGui.CloseCurrentPopup();
         }
-        if (!canCreate) ImGui.EndDisabled();
-
-        ImGui.SameLine();
-        if (ImGui.Button(Loc.Get("Common.Cancel") + "##emp"))
+        else
         {
-            emptyCreateNameDraft = "";
-            ImGui.CloseCurrentPopup();
+            ImGui.SameLine();
+            if (!canCreate) ImGui.BeginDisabled();
+            if (Buttons.Primary(Loc.Get("Planche.CreateAndEdit") + "##emp_go"))
+            {
+                var created = plancheLibrary.Create(
+                    emptyCreateNameDraft.Trim(),
+                    emptyCreateSet,
+                    Array.Empty<PlancheEntry>());
+                libraryActiveSet = emptyCreateSet;
+                editingPlanche = ClonePlanche(created);
+                editingNameDraft = editingPlanche.Name;
+                emptyCreateNameDraft = "";
+                ImGui.CloseCurrentPopup();
+            }
+            if (!canCreate) ImGui.EndDisabled();
         }
 
         ImGui.EndPopup();
@@ -2125,19 +2041,15 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
             ? IndividualSetLabel()
             : Loc.Get("Set.Shared");
         
-        var backLabel = "← " + Loc.Get("Common.Back");
-        var backW = ImGui.CalcTextSize(backLabel).X + ImGui.GetStyle().FramePadding.X * 2;
-
-        ImGui.AlignTextToFramePadding();
-        ImGui.TextColored(new Vector4(0.6f, 0.6f, 0.6f, 1f), string.Format(Loc.Get("Planche.EditorTag"), setLabel));
-        ImGui.SameLine();
-        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + ImGui.GetContentRegionAvail().X - backW);
-        if (ImGui.Button(backLabel))
+        if (Buttons.Quiet("‹ " + Loc.Get("Common.Back")))
         {
             PersistPlanche();
             editingPlanche = null;
             return;
         }
+        ImGui.SameLine();
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextColored(MacroFolioTheme.TextSecondary, string.Format(Loc.Get("Planche.EditorTag"), setLabel));
 
         ImGui.SetNextItemWidth(-1);
         ImGui.InputTextWithHint("##edit_name", Loc.Get("Planche.NameHint"), ref editingNameDraft, 64);
@@ -2145,7 +2057,7 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
             PersistPlanche();
 
         ImGuiHelpers.ScaledDummy(2f);
-        ImGui.TextDisabled(Loc.Get("Planche.AutoSaved"));
+        ImGui.TextColored(MacroFolioTheme.TextDim, Loc.Get("Planche.AutoSaved"));
 
         ImGui.Separator();
         ImGui.Spacing();
@@ -2191,7 +2103,7 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
 
         ImGui.Spacing();
         var filled = editingPlanche.Entries.Count;
-        ImGui.TextColored(MacroFolioTheme.AccentColor with { W = 0.7f },
+        ImGui.TextColored(MacroFolioTheme.TextSecondary,
             string.Format(Loc.Get("Planche.SlotsFilled"), filled));
     }
 
@@ -2260,7 +2172,7 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
             var label = slot.ToString();
             var textSize = ImGui.CalcTextSize(label);
             var textPos = cursorScreen + (new Vector2(cellSize, cellSize) - textSize) / 2f;
-            drawList.AddText(textPos, ImGui.GetColorU32(new Vector4(0.45f, 0.45f, 0.45f, 1f)), label);
+            drawList.AddText(textPos, ImGui.GetColorU32(MacroFolioTheme.TextDim with { W = 0.75f }), label);
         }
 
         var borderColor = isEmpty ? MacroFolioTheme.ThemeBorder : BorderEnabledColor;
@@ -2306,9 +2218,8 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         ImGui.TextUnformatted(Loc.Get("Planche.PickMacro"));
         ImGui.Separator();
 
-        ImGui.SetNextItemWidth(360f * ImGuiHelpers.GlobalScale);
-        if (ImGui.IsWindowAppearing()) ImGui.SetKeyboardFocusHere();
-        ImGui.InputTextWithHint("##pick_search", Loc.Get("Common.SearchHint"), ref pickerSearch, 64);
+        SearchField.Draw("pick_search", ref pickerSearch, Loc.Get("Common.SearchHint"),
+            360f * ImGuiHelpers.GlobalScale, 64, focusOnAppear: true);
 
         var macros = library.List(editingPlanche.TargetSet);
         var query = pickerSearch.Trim();
@@ -2342,26 +2253,23 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         }
         ImGui.EndChild();
 
-        ImGui.Spacing();
-        var hasEntry = editingPlanche.Entries.Any(e => e.Slot == slot);
-        if (hasEntry)
+        ImGuiHelpers.ScaledDummy(6f);
+        if (Buttons.Quiet(Loc.Get("Common.Cancel") + "##pk_cancel")
+            || (Buttons.EscapePressed() && pickerSearch.Length == 0))
         {
-            ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.55f, 0.18f, 0.18f, 1f));
-            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.70f, 0.22f, 0.22f, 1f));
-            if (ImGui.Button(Loc.Get("Planche.ClearSlot")))
+            pickingForSlot = null;
+            ImGui.CloseCurrentPopup();
+        }
+        else if (editingPlanche.Entries.Any(e => e.Slot == slot))
+        {
+            ImGui.SameLine();
+            if (Buttons.Destructive(Loc.Get("Planche.ClearSlot") + "##pk_clear"))
             {
                 editingPlanche.Entries.RemoveAll(e => e.Slot == slot);
                 PersistPlanche();
                 pickingForSlot = null;
                 ImGui.CloseCurrentPopup();
             }
-            ImGui.PopStyleColor(2);
-            ImGui.SameLine();
-        }
-        if (ImGui.Button(Loc.Get("Common.Cancel") + "##pk_cancel"))
-        {
-            pickingForSlot = null;
-            ImGui.CloseCurrentPopup();
         }
 
         ImGui.EndPopup();
@@ -2391,11 +2299,7 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         ImGui.Separator();
 
         ImGui.TextDisabled(Loc.Get("Planche.SourceSet"));
-        if (ImGui.RadioButton($"{IndividualSetLabel()}##cap_ind", captureTargetSet == MacroSet.Individual))
-            captureTargetSet = MacroSet.Individual;
-        ImGui.SameLine();
-        if (ImGui.RadioButton(Loc.Get("Set.Shared") + "##cap_sh", captureTargetSet == MacroSet.Shared))
-            captureTargetSet = MacroSet.Shared;
+        captureTargetSet = SetPicker("cap_set", captureTargetSet, 320f * ImGuiHelpers.GlobalScale);
 
         ImGui.Spacing();
         ImGui.SetNextItemWidth(320f * ImGuiHelpers.GlobalScale);
@@ -2404,23 +2308,25 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         var snapshot = library.SnapshotActive(captureTargetSet);
         ImGui.TextDisabled(string.Format(Loc.Get("Planche.CaptureCount"), snapshot.Count));
 
-        ImGui.Spacing();
+        ImGuiHelpers.ScaledDummy(6f);
         var canCreate = !string.IsNullOrWhiteSpace(captureNameDraft) && snapshot.Count > 0;
-        if (!canCreate) ImGui.BeginDisabled();
-        if (ImGui.Button(Loc.Get("Planche.CreateButton")))
+        if (Buttons.Quiet(Loc.Get("Common.Cancel") + "##cap") || Buttons.EscapePressed())
         {
-            plancheLibrary.Create(captureNameDraft.Trim(), captureTargetSet, snapshot);
-            libraryActiveSet = captureTargetSet;
             captureNameDraft = "";
             ImGui.CloseCurrentPopup();
         }
-        if (!canCreate) ImGui.EndDisabled();
-
-        ImGui.SameLine();
-        if (ImGui.Button(Loc.Get("Common.Cancel") + "##cap"))
+        else
         {
-            captureNameDraft = "";
-            ImGui.CloseCurrentPopup();
+            ImGui.SameLine();
+            if (!canCreate) ImGui.BeginDisabled();
+            if (Buttons.Primary(Loc.Get("Planche.CreateButton") + "##cap_go"))
+            {
+                plancheLibrary.Create(captureNameDraft.Trim(), captureTargetSet, snapshot);
+                libraryActiveSet = captureTargetSet;
+                captureNameDraft = "";
+                ImGui.CloseCurrentPopup();
+            }
+            if (!canCreate) ImGui.EndDisabled();
         }
 
         ImGui.EndPopup();
@@ -2449,22 +2355,21 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         var setLabel = planche.TargetSet == MacroSet.Individual ? IndividualSetLabel() : Loc.Get("Set.Shared");
         ImGui.TextWrapped(string.Format(Loc.Get("Planche.Apply.Detail"), setLabel, planche.Entries.Count));
 
-        ImGui.Spacing();
-        ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.20f, 0.55f, 0.25f, 1f));
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.25f, 0.65f, 0.30f, 1f));
-        if (ImGui.Button(Loc.Get("Planche.Apply.Now")))
+        ImGuiHelpers.ScaledDummy(6f);
+        if (Buttons.Quiet(Loc.Get("Common.Cancel") + "##apply") || Buttons.EscapePressed())
         {
-            library.ReplaceAll(planche.TargetSet, planche.Entries);
             requestApplyPlancheId = null;
             ImGui.CloseCurrentPopup();
         }
-        ImGui.PopStyleColor(2);
-
-        ImGui.SameLine();
-        if (ImGui.Button(Loc.Get("Common.Cancel") + "##apply"))
+        else
         {
-            requestApplyPlancheId = null;
-            ImGui.CloseCurrentPopup();
+            ImGui.SameLine();
+            if (Buttons.Primary(Loc.Get("Planche.Apply.Now") + "##apply_go"))
+            {
+                library.ReplaceAll(planche.TargetSet, planche.Entries);
+                requestApplyPlancheId = null;
+                ImGui.CloseCurrentPopup();
+            }
         }
 
         ImGui.EndPopup();
@@ -2491,22 +2396,21 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         ImGui.Separator();
         ImGui.TextDisabled(Loc.Get("Planche.Delete.Detail"));
 
-        ImGui.Spacing();
-        ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.55f, 0.18f, 0.18f, 1f));
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.70f, 0.22f, 0.22f, 1f));
-        if (ImGui.Button(Loc.Get("Common.Delete")))
+        ImGuiHelpers.ScaledDummy(6f);
+        if (Buttons.Quiet(Loc.Get("Common.Cancel") + "##del") || Buttons.EscapePressed())
         {
-            plancheLibrary.Delete(planche.Id);
             requestDeletePlancheId = null;
             ImGui.CloseCurrentPopup();
         }
-        ImGui.PopStyleColor(2);
-
-        ImGui.SameLine();
-        if (ImGui.Button(Loc.Get("Common.Cancel") + "##del"))
+        else
         {
-            requestDeletePlancheId = null;
-            ImGui.CloseCurrentPopup();
+            ImGui.SameLine();
+            if (Buttons.DestructiveFilled(Loc.Get("Common.Delete") + "##del_yes"))
+            {
+                plancheLibrary.Delete(planche.Id);
+                requestDeletePlancheId = null;
+                ImGui.CloseCurrentPopup();
+            }
         }
 
         ImGui.EndPopup();
@@ -2539,7 +2443,7 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         ImGui.SameLine();
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + ImGui.GetContentRegionAvail().X - rightW);
         ImGui.AlignTextToFramePadding();
-        ImGui.TextColored(MacroFolioTheme.AccentColor, rightText);
+        ImGui.TextColored(MacroFolioTheme.TextSecondary, rightText);
     }
 
     private void DrawFooterQuickEdit(CachedMacro sel)
@@ -2622,14 +2526,13 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
 
     private void DrawDraftsToolbar()
     {
+        if (brouillonLibrary.ListAll().Count == 0) return;
+
         var label = Loc.Get("Draft.NewButton");
-        var w = ImGui.CalcTextSize(label).X + ImGui.GetStyle().FramePadding.X * 2;
+        var w = Buttons.PrimaryWidth(label);
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + ImGui.GetContentRegionAvail().X - w);
-        if (ImGui.Button(label))
-        {
-            var draft = brouillonLibrary.Create(Loc.Get("Draft.DefaultName"), 66001u, Array.Empty<string>());
-            OpenDraft(draft);
-        }
+        if (Buttons.Primary(label, w))
+            CreateAndOpenDraft();
         ImGui.Spacing();
     }
 
@@ -2638,8 +2541,9 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         var drafts = brouillonLibrary.ListAll();
         if (drafts.Count == 0)
         {
-            ImGui.TextColored(MacroFolioTheme.AccentColor with { W = 0.6f },
-                Loc.Get("Draft.EmptyList"));
+            if (EmptyState.Draw(FontAwesomeIcon.PenAlt, Loc.Get("Empty.Drafts.Title"),
+                    Loc.Get("Empty.Drafts.Body"), Loc.Get("Draft.NewButton")))
+                CreateAndOpenDraft();
             return;
         }
 
@@ -2655,6 +2559,9 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         ImGui.EndChild();
     }
 
+    private void CreateAndOpenDraft()
+        => OpenDraft(brouillonLibrary.Create(Loc.Get("Draft.DefaultName"), 66001u, Array.Empty<string>()));
+
     private void DrawDraftRow(Brouillon draft, int index, int total)
     {
         var rowH = 56f * ImGuiHelpers.GlobalScale;
@@ -2665,12 +2572,12 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         dl.AddRectFilled(
             cursor,
             cursor + new Vector2(width, rowH),
-            ImGui.GetColorU32(new Vector4(0.16f, 0.16f, 0.16f, MacroFolioTheme.CardAlpha())),
-            6f * ImGuiHelpers.GlobalScale);
+            ImGui.GetColorU32(MacroFolioTheme.ThemeButtonBg with { W = MacroFolioTheme.CardAlpha() }),
+            MacroFolioTheme.RadiusCard * ImGuiHelpers.GlobalScale);
         dl.AddRect(
             cursor,
             cursor + new Vector2(width, rowH),
-            ImGui.GetColorU32(MacroFolioTheme.ThemeBorder),
+            ImGui.GetColorU32(MacroFolioTheme.ThemeBorder with { W = 0.6f }),
             6f * ImGuiHelpers.GlobalScale,
             ImDrawFlags.None,
             1f);
@@ -2681,22 +2588,19 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         var arrowW = 22f * ImGuiHelpers.GlobalScale;
         var arrowH = 22f * ImGuiHelpers.GlobalScale;
         var arrowX = cursor.X + 8f * ImGuiHelpers.GlobalScale;
-        using (Plugin.PluginInterface.UiBuilder.IconFontFixedWidthHandle.Push())
-        {
-            ImGui.SetCursorScreenPos(new Vector2(arrowX, cursor.Y + 6f * ImGuiHelpers.GlobalScale));
-            var atTop = index == 0;
-            if (atTop) ImGui.BeginDisabled();
-            if (ImGui.Button(FontAwesomeIcon.ChevronUp.ToIconString() + "##d_up", new Vector2(arrowW, arrowH)))
-                brouillonLibrary.Move(draft.Id, -1);
-            if (atTop) ImGui.EndDisabled();
+        ImGui.SetCursorScreenPos(new Vector2(arrowX, cursor.Y + 6f * ImGuiHelpers.GlobalScale));
+        var atTop = index == 0;
+        if (atTop) ImGui.BeginDisabled();
+        if (Buttons.QuietIcon(FontAwesomeIcon.ChevronUp, "d_up", null, MacroFolioTheme.TextSecondary, new Vector2(arrowW, arrowH)))
+            brouillonLibrary.Move(draft.Id, -1);
+        if (atTop) ImGui.EndDisabled();
 
-            ImGui.SetCursorScreenPos(new Vector2(arrowX, cursor.Y + 6f * ImGuiHelpers.GlobalScale + arrowH + 2f));
-            var atBottom = index == total - 1;
-            if (atBottom) ImGui.BeginDisabled();
-            if (ImGui.Button(FontAwesomeIcon.ChevronDown.ToIconString() + "##d_down", new Vector2(arrowW, arrowH)))
-                brouillonLibrary.Move(draft.Id, +1);
-            if (atBottom) ImGui.EndDisabled();
-        }
+        ImGui.SetCursorScreenPos(new Vector2(arrowX, cursor.Y + 6f * ImGuiHelpers.GlobalScale + arrowH + 2f));
+        var atBottom = index == total - 1;
+        if (atBottom) ImGui.BeginDisabled();
+        if (Buttons.QuietIcon(FontAwesomeIcon.ChevronDown, "d_down", null, MacroFolioTheme.TextSecondary, new Vector2(arrowW, arrowH)))
+            brouillonLibrary.Move(draft.Id, +1);
+        if (atBottom) ImGui.EndDisabled();
 
         var iconSize = 36f * ImGuiHelpers.GlobalScale;
         var iconPos = new Vector2(
@@ -2713,7 +2617,7 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         var meta = string.Format(Loc.Get("Draft.RowMeta"), draft.Lines.Count, chunks, macroWord)
                    + $"  ·  {draft.UpdatedAt.ToLocalTime():dd/MM/yyyy HH:mm}";
         ImGui.SetCursorScreenPos(new Vector2(textX, cursor.Y + 30f * ImGuiHelpers.GlobalScale));
-        ImGui.TextColored(new Vector4(0.6f, 0.6f, 0.6f, 1f), meta);
+        ImGui.TextColored(MacroFolioTheme.TextSecondary, meta);
 
         var btnH = 26f * ImGuiHelpers.GlobalScale;
         var modW = 84f * ImGuiHelpers.GlobalScale;
@@ -2724,11 +2628,11 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         var btnY = cursor.Y + (rowH - btnH) / 2f;
 
         ImGui.SetCursorScreenPos(new Vector2(cursor.X + width - totalBtnW - 12f * ImGuiHelpers.GlobalScale, btnY));
-        if (ImGui.Button(Loc.Get("Draft.Edit") + $"##d_mod_{draft.Id}", new Vector2(modW, btnH)))
+        if (Buttons.Quiet(Loc.Get("Draft.Edit") + $"##d_mod_{draft.Id}", modW, btnH))
             OpenDraft(brouillonLibrary.GetById(draft.Id) ?? draft);
 
         ImGui.SameLine(0f, rightSpacing);
-        if (ImGui.Button(Loc.Get("Draft.Publish") + $"##d_pub_{draft.Id}", new Vector2(pubW, btnH)))
+        if (Buttons.Tinted(Loc.Get("Draft.Publish") + $"##d_pub_{draft.Id}", pubW, btnH))
         {
             requestPublishDraftId = draft.Id;
             publishTargetSet = MacroSet.Individual;
@@ -2736,11 +2640,8 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         }
 
         ImGui.SameLine(0f, rightSpacing);
-        ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.55f, 0.18f, 0.18f, 1f));
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.70f, 0.22f, 0.22f, 1f));
-        if (ImGui.Button(Loc.Get("Draft.Delete") + $"##d_del_{draft.Id}", new Vector2(delW, btnH)))
+        if (Buttons.Destructive(Loc.Get("Draft.Delete") + $"##d_del_{draft.Id}", delW, btnH))
             requestDeleteDraftId = draft.Id;
-        ImGui.PopStyleColor(2);
 
         ImGui.PopID();
         ImGui.SetCursorScreenPos(cursor + new Vector2(0f, rowH + 6f * ImGuiHelpers.GlobalScale));
@@ -2773,7 +2674,7 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
             var textSize = ImGui.CalcTextSize(initial);
             drawList.AddText(
                 cursorScreen + (box - textSize) / 2f,
-                ImGui.GetColorU32(new Vector4(0.6f, 0.6f, 0.6f, 1f)),
+                ImGui.GetColorU32(MacroFolioTheme.TextSecondary),
                 initial);
         }
 
@@ -2799,25 +2700,20 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         if (editingDraft is null) return;
 
         var saveLabel = Loc.Get("Common.Save");
-        var backLabel = "← " + Loc.Get("Common.Back");
-        var saveW = ImGui.CalcTextSize(saveLabel).X + ImGui.GetStyle().FramePadding.X * 2;
-        var backW = ImGui.CalcTextSize(backLabel).X + ImGui.GetStyle().FramePadding.X * 2;
-        var spacing = 6f * ImGuiHelpers.GlobalScale;
+        var saveW = Buttons.PrimaryWidth(saveLabel);
 
-        ImGui.AlignTextToFramePadding();
-        ImGui.TextColored(new Vector4(0.6f, 0.6f, 0.6f, 1f), Loc.Get("Draft.EditorTag"));
-        ImGui.SameLine();
-        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + ImGui.GetContentRegionAvail().X - saveW - backW - spacing);
-        if (ImGui.Button(backLabel))
+        if (Buttons.Quiet("‹ " + Loc.Get("Common.Back")))
         {
             StopDraftRecordingIfActive();
             editingDraft = null;
             return;
         }
-        ImGui.SameLine(0f, spacing);
-        ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.20f, 0.55f, 0.25f, 1f));
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.25f, 0.65f, 0.30f, 1f));
-        if (ImGui.Button(saveLabel))
+        ImGui.SameLine();
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextColored(MacroFolioTheme.TextSecondary, Loc.Get("Draft.EditorTag"));
+        ImGui.SameLine();
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + ImGui.GetContentRegionAvail().X - saveW);
+        if (Buttons.Primary(saveLabel, saveW))
         {
             StopDraftRecordingIfActive();
             editingDraft.Name = string.IsNullOrWhiteSpace(draftNameDraft)
@@ -2830,7 +2726,6 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
             brouillonLibrary.Update(editingDraft);
             editingDraft = null;
         }
-        ImGui.PopStyleColor(2);
         if (editingDraft is null) return;
 
         ImGui.SetNextItemWidth(-1);
@@ -2863,7 +2758,7 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
             iconHovered ? 2f * ImGuiHelpers.GlobalScale : 1f);
         ImGui.SameLine();
         ImGui.AlignTextToFramePadding();
-        if (ImGui.Button(Loc.Get("Common.ChooseIcon")))
+        if (Buttons.Quiet(Loc.Get("Common.ChooseIcon")))
             iconPicker.Open(draftIconDraft, id => draftIconDraft = id);
 
         ImGui.Spacing();
@@ -2879,7 +2774,7 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         var chunks = BrouillonLibrary.CountRequiredMacros(lines);
         var lineWord = lines > 1 ? Loc.Get("Draft.LinesPlural") : Loc.Get("Draft.LineSingular");
         var macroWord2 = chunks > 1 ? Loc.Get("Draft.MacrosPlural") : Loc.Get("Draft.MacroSingular");
-        ImGui.TextColored(MacroFolioTheme.AccentColor with { W = 0.7f },
+        ImGui.TextColored(MacroFolioTheme.TextSecondary,
             string.Format(Loc.Get("Draft.PublishedPreview"), lines, lineWord, chunks, macroWord2));
     }
 
@@ -2893,23 +2788,20 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
 
         if (recordingService.IsRecording)
         {
-            ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.60f, 0.18f, 0.18f, 1f));
-            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.72f, 0.22f, 0.22f, 1f));
-            if (ImGui.Button("■ " + Loc.Get("Draft.StopRecording")))
+            if (Buttons.DestructiveFilled("■ " + Loc.Get("Draft.StopRecording")))
                 ToggleDraftRecording();
-            ImGui.PopStyleColor(2);
             ImGui.SameLine();
             ImGui.AlignTextToFramePadding();
-            ImGui.TextColored(new Vector4(0.95f, 0.4f, 0.4f, 1f),
+            ImGui.TextColored(MacroFolioTheme.DangerColor,
                 string.Format(Loc.Get("Draft.RecStatus"), recordingService.CapturedCount));
         }
         else
         {
-            if (ImGui.Button("● " + Loc.Get("Draft.RecordEmotes")))
+            if (Buttons.Quiet("● " + Loc.Get("Draft.RecordEmotes")))
                 ToggleDraftRecording();
             ImGui.SameLine();
-            
-            if (ImGui.Button("▶ " + Loc.Get("Draft.RunSequence")))
+
+            if (Buttons.Quiet("▶ " + Loc.Get("Draft.RunSequence")))
             {
                 var allLines = draftActionEditor.ExportLines();
                 var from = Math.Clamp(draftRunFromLine - 1, 0, Math.Max(0, allLines.Count - 1));
@@ -2919,6 +2811,9 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
                 {
                     MacroLibrary.PreviewResult.Empty => Loc.Get("Draft.Preview.Empty"),
                     MacroLibrary.PreviewResult.NoFreeSlot => Loc.Get("Draft.Preview.NoFreeSlot"),
+                    MacroLibrary.PreviewResult.CombatCommand => GuardMessage(AutomationGuard.Verdict.CombatCommand),
+                    MacroLibrary.PreviewResult.InCombat => GuardMessage(AutomationGuard.Verdict.InCombat),
+                    MacroLibrary.PreviewResult.InInstance => GuardMessage(AutomationGuard.Verdict.InInstance),
                     _ => "",
                 };
                 draftPreviewMessageUntil = ImGui.GetTime() + 4.0;
@@ -2937,7 +2832,7 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
             ImGui.SameLine();
             ImGui.AlignTextToFramePadding();
             if (!string.IsNullOrEmpty(draftPreviewMessage) && ImGui.GetTime() < draftPreviewMessageUntil)
-                ImGui.TextColored(new Vector4(0.90f, 0.55f, 0.20f, 1f), draftPreviewMessage);
+                ImGui.TextColored(MacroFolioTheme.WarningColor, draftPreviewMessage);
             else
                 ImGui.TextDisabled(Loc.Get("Draft.RecordHint"));
         }
@@ -2994,7 +2889,7 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         ImGui.Separator();
         var pubLineWord = draft.Lines.Count > 1 ? Loc.Get("Draft.LinesPlural") : Loc.Get("Draft.LineSingular");
         var pubMacroWord = chunks.Count > 1 ? Loc.Get("Draft.ChainedMacrosPlural") : Loc.Get("Draft.ChainedMacroSingular");
-        ImGui.TextColored(MacroFolioTheme.AccentColor with { W = 0.7f },
+        ImGui.TextColored(MacroFolioTheme.TextSecondary,
             string.Format(Loc.Get("Draft.Publish.Summary"), draft.Lines.Count, pubLineWord, chunks.Count, pubMacroWord));
 
         if (chunks.Count > 0)
@@ -3005,12 +2900,7 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         ImGui.Spacing();
 
         ImGui.TextDisabled(Loc.Get("Draft.Publish.TargetSet"));
-        var indLabel = Plugin.ObjectTable.LocalPlayer?.Name.ToString() ?? Loc.Get("Set.CurrentCharacter");
-        if (ImGui.RadioButton($"{indLabel}##pub_ind", publishTargetSet == MacroSet.Individual))
-            publishTargetSet = MacroSet.Individual;
-        ImGui.SameLine();
-        if (ImGui.RadioButton(Loc.Get("Set.Shared") + "##pub_sh", publishTargetSet == MacroSet.Shared))
-            publishTargetSet = MacroSet.Shared;
+        publishTargetSet = SetPicker("pub_set", publishTargetSet, 320f * ImGuiHelpers.GlobalScale);
 
         ImGui.Spacing();
         ImGui.TextDisabled(Loc.Get("Draft.Publish.StartSlot"));
@@ -3025,7 +2915,7 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
             : $"{publishStartSlot}-{endSlot}";
         if (!fits)
         {
-            ImGui.TextColored(new Vector4(0.9f, 0.3f, 0.3f, 1f),
+            ImGui.TextColored(MacroFolioTheme.DangerColor,
                 string.Format(Loc.Get("Draft.Publish.NotEnoughRoom"), range, MacroService.SlotsPerSet - 1));
         }
         else
@@ -3038,36 +2928,35 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
                 .ToList();
             if (occupied.Count > 0)
             {
-                ImGui.TextColored(new Vector4(0.95f, 0.7f, 0.2f, 1f),
+                ImGui.TextColored(MacroFolioTheme.WarningColor,
                     string.Format(Loc.Get("Draft.Publish.WillOverwrite"), occupied.Count, string.Join(", ", occupied)));
             }
             else
             {
-                ImGui.TextColored(new Vector4(0.3f, 0.85f, 0.3f, 1f),
+                ImGui.TextColored(MacroFolioTheme.SuccessColor,
                     string.Format(publishStartSlot == endSlot
                         ? Loc.Get("Draft.Publish.SlotFree")
                         : Loc.Get("Draft.Publish.SlotsFree"), range));
             }
         }
 
-        ImGui.Spacing();
-        if (!fits) ImGui.BeginDisabled();
-        ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.20f, 0.55f, 0.25f, 1f));
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.25f, 0.65f, 0.30f, 1f));
-        if (ImGui.Button(Loc.Get("Draft.Publish.Now")))
+        ImGuiHelpers.ScaledDummy(6f);
+        if (Buttons.Quiet(Loc.Get("Common.Cancel") + "##pub_cancel") || Buttons.EscapePressed())
         {
-            library.PublishChunks(publishTargetSet, publishStartSlot, draft.Name, draft.IconId, chunks);
             requestPublishDraftId = null;
             ImGui.CloseCurrentPopup();
         }
-        ImGui.PopStyleColor(2);
-        if (!fits) ImGui.EndDisabled();
-
-        ImGui.SameLine();
-        if (ImGui.Button(Loc.Get("Common.Cancel") + "##pub_cancel"))
+        else
         {
-            requestPublishDraftId = null;
-            ImGui.CloseCurrentPopup();
+            ImGui.SameLine();
+            if (!fits) ImGui.BeginDisabled();
+            if (Buttons.Primary(Loc.Get("Draft.Publish.Now") + "##pub_go"))
+            {
+                library.PublishChunks(publishTargetSet, publishStartSlot, draft.Name, draft.IconId, chunks);
+                requestPublishDraftId = null;
+                ImGui.CloseCurrentPopup();
+            }
+            if (!fits) ImGui.EndDisabled();
         }
         ImGui.EndPopup();
     }
@@ -3091,22 +2980,21 @@ public sealed class MainWindow : MacroFolioWindowBase, IDisposable
         ImGui.Separator();
         ImGui.TextDisabled(Loc.Get("Draft.Delete.Detail"));
 
-        ImGui.Spacing();
-        ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.55f, 0.18f, 0.18f, 1f));
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.70f, 0.22f, 0.22f, 1f));
-        if (ImGui.Button(Loc.Get("Common.Delete")))
+        ImGuiHelpers.ScaledDummy(6f);
+        if (Buttons.Quiet(Loc.Get("Common.Cancel") + "##d_del_cancel") || Buttons.EscapePressed())
         {
-            brouillonLibrary.Delete(draft.Id);
             requestDeleteDraftId = null;
             ImGui.CloseCurrentPopup();
         }
-        ImGui.PopStyleColor(2);
-
-        ImGui.SameLine();
-        if (ImGui.Button(Loc.Get("Common.Cancel") + "##d_del_cancel"))
+        else
         {
-            requestDeleteDraftId = null;
-            ImGui.CloseCurrentPopup();
+            ImGui.SameLine();
+            if (Buttons.DestructiveFilled(Loc.Get("Common.Delete") + "##d_del_yes"))
+            {
+                brouillonLibrary.Delete(draft.Id);
+                requestDeleteDraftId = null;
+                ImGui.CloseCurrentPopup();
+            }
         }
         ImGui.EndPopup();
     }

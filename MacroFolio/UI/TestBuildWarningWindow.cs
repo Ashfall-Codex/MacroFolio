@@ -6,6 +6,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using MacroFolio.Localization;
+using MacroFolio.UI.Components;
 
 namespace MacroFolio.UI;
 
@@ -56,7 +57,7 @@ public sealed class TestBuildWarningWindow : MacroFolioWindowBase, IDisposable
         var header = Loc.Get("TestBuildWarning.Header");
         var headerW = ImGui.CalcTextSize(header).X;
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + MathF.Max(0, (avail - headerW) / 2f));
-        ImGui.TextColored(new Vector4(0.90f, 0.30f, 0.30f, 1f), header);
+        ImGui.TextColored(MacroFolioTheme.WarningColor, header);
 
         ImGui.Separator();
         ImGuiHelpers.ScaledDummy(4f);
@@ -73,10 +74,10 @@ public sealed class TestBuildWarningWindow : MacroFolioWindowBase, IDisposable
             heartW = ImGui.CalcTextSize(heart).X;
         var spacing = ImGui.GetStyle().ItemSpacing.X;
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + MathF.Max(0, (avail - (sigW + spacing + heartW)) / 2f));
-        ImGui.TextColored(new Vector4(0.6f, 0.6f, 0.6f, 1f), signature);
+        ImGui.TextColored(MacroFolioTheme.TextSecondary, signature);
         ImGui.SameLine();
         using (ImRaii.PushFont(UiBuilder.IconFont))
-            ImGui.TextColored(new Vector4(0.6f, 0.6f, 0.6f, 1f), heart);
+            ImGui.TextColored(MacroFolioTheme.TextSecondary, heart);
 
         ImGuiHelpers.ScaledDummy(8f);
         ImGui.Separator();
@@ -84,7 +85,7 @@ public sealed class TestBuildWarningWindow : MacroFolioWindowBase, IDisposable
         var buttonLabel = Loc.Get("TestBuildWarning.Acknowledge");
         var buttonW = 180f * ImGuiHelpers.GlobalScale;
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + MathF.Max(0, (avail - buttonW) / 2f));
-        if (ImGui.Button(buttonLabel, new Vector2(buttonW, 0)))
+        if (Buttons.Primary(buttonLabel, buttonW))
         {
             config.LastTestBuildWarningVersionSeen = versionLabel;
             config.Save();

@@ -21,6 +21,7 @@ public sealed class Plugin : IDalamudPlugin
     internal static ITextureProvider TextureProvider { get; private set; } = null!;
     internal static IObjectTable ObjectTable { get; private set; } = null!;
     internal static IDataManager DataManager { get; private set; } = null!;
+    internal static ICondition Condition { get; private set; } = null!;
     internal static Configuration Config { get; private set; } = null!;
     internal static FileDialogManager FileDialogManager { get; } = new();
 
@@ -36,6 +37,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly MacroLibrary library;
     private readonly ChatSenderService chatSender;
     private readonly EmoteRecordingService recordingService;
+    private readonly MacroExecutionGuard executionGuard;
     private readonly MainWindow mainWindow;
     private readonly MacroCreateWizard createWizard;
     private readonly MacroImportWindow importWindow;
@@ -52,13 +54,16 @@ public sealed class Plugin : IDalamudPlugin
         IGameInteropProvider gameInteropProvider,
         IFramework framework,
         IClientState clientState,
-        IAddonLifecycle addonLifecycle)
+        IAddonLifecycle addonLifecycle,
+        ICondition condition,
+        IChatGui chatGui)
     {
         PluginInterface = pluginInterface;
         Log = pluginLog;
         TextureProvider = textureProvider;
         ObjectTable = objectTable;
         DataManager = dataManager;
+        Condition = condition;
         this.framework = framework;
         this.commandManager = commandManager;
         this.clientState = clientState;
@@ -79,6 +84,7 @@ public sealed class Plugin : IDalamudPlugin
         var texteLibrary = new TexteLibrary();
         chatSender = new ChatSenderService();
         recordingService = new EmoteRecordingService(gameInteropProvider);
+        executionGuard = new MacroExecutionGuard(gameInteropProvider, macroService, library, chatGui);
         iconPicker = new IconPickerWindow();
         createWizard = new MacroCreateWizard(library, iconPicker);
         importWindow = new MacroImportWindow(library, iconPicker);
@@ -169,6 +175,7 @@ public sealed class Plugin : IDalamudPlugin
         // unsubscribe throws, the hook must still have been freed (otherwise
         // Dalamud reports a leaked hook).
         Safe(() => recordingService.Dispose());
+        Safe(() => executionGuard.Dispose());
 
         Safe(() => PluginInterface.UiBuilder.Draw -= DrawUI);
         Safe(() => PluginInterface.UiBuilder.OpenMainUi -= OpenMainUi);

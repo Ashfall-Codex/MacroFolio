@@ -3,14 +3,13 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility;
 using MacroFolio.Localization;
+using MacroFolio.UI.Components;
 
 namespace MacroFolio.UI;
 
 public sealed class ActionListEditor
 {
     private const int MaxLineLength = 180;
-    // Generous input buffer so pasted/long lines are NEVER silently truncated in
-    // the editor. The real per-line game limit only matters at publish time.
     private const int EditBufferSize = 2000;
     private const string ActionDragType = "MF_ACTION_ROW";
     private static readonly byte[] DragPayloadDummy = new byte[1];
@@ -31,16 +30,13 @@ public sealed class ActionListEditor
     private string startOffsetText = "0:00";
     private int draggedActionIndex = -1;
     private (int From, int To)? pendingActionMove;
-    private int pendingInsertIndex = -1; // -1 = append (before any trailing /nextmacro)
+    private int pendingInsertIndex = -1;
     private int editingNoteRow = -1;
-    // Notes are anchored to LINE CONTENT, not to position, so adding/removing a
-    // line in Classique mode no longer shifts the notes of the other lines.
-    // stashedLines[i] is the macro line that stashedNotes[i] belongs to.
     private List<string>? stashedNotes;
     private List<string>? stashedLines;
 
     private static List<EmoteOption>? unlockedEmotes;
-    private static HashSet<string>? unlockedEmoteCommands; // every command variant, for recognition
+    private static HashSet<string>? unlockedEmoteCommands;
     private static List<JobActionOption>? cachedJobActions;
     private static uint cachedJobActionsForId;
 
@@ -104,7 +100,6 @@ public sealed class ActionListEditor
         startOffsetText = FormatTimestamp(startOffsetSeconds);
         if (notes is not null)
         {
-            // Anchor each incoming note to its line's content.
             stashedNotes = new List<string>(notes);
             stashedLines = lineList.Take(notes.Count).ToList();
             while (stashedLines.Count < stashedNotes.Count) stashedLines.Add("");
@@ -130,20 +125,14 @@ public sealed class ActionListEditor
         if (actionMode == ActionEditorMode.Simplifié)
             notes = draftActionList.Take(lines.Count).Select(a => a.Note).ToList();
         else
-            // Re-anchor stashed notes to the current lines by content, so edits in
-            // Classique mode keep each note on its line.
+
             notes = MatchNotesToLines(lines);
 
         if (notes.Count > lines.Count) notes = notes.Take(lines.Count).ToList();
         while (notes.Count < lines.Count) notes.Add("");
         return notes;
     }
-
-    /// <summary>
-    /// Build a note-per-line list for <paramref name="lines"/> by matching each
-    /// line to its stashed (line content → note) pair. Greedy first-unused match,
-    /// so duplicate lines keep distinct notes in order.
-    /// </summary>
+    
     private List<string> MatchNotesToLines(List<string> lines)
     {
         var result = new List<string>(new string[lines.Count]);
@@ -204,34 +193,13 @@ public sealed class ActionListEditor
 
     private void DrawModeSelector(float availWidth)
     {
-        var spacing = 6f * ImGuiHelpers.GlobalScale;
-        var btnW = (220f * ImGuiHelpers.GlobalScale - spacing) / 2f;
-        var btnH = 24f * ImGuiHelpers.GlobalScale;
-        var totalW = btnW * 2f + spacing;
-
-        ImGui.SetCursorPosX((availWidth - totalW) / 2f);
-        DrawModeButton(Loc.Get("Editor.Mode.Classic"), ActionEditorMode.Classique, new Vector2(btnW, btnH));
-        ImGui.SameLine(0f, spacing);
-        DrawModeButton(Loc.Get("Editor.Mode.Simplified"), ActionEditorMode.Simplifié, new Vector2(btnW, btnH));
-    }
-
-    private void DrawModeButton(string label, ActionEditorMode mode, Vector2 size)
-    {
-        var isActive = actionMode == mode;
-        var bg = isActive ? MacroFolioTheme.AccentColor : MacroFolioTheme.ThemeButtonBg;
-        var textColor = isActive ? MacroFolioTheme.ThemeWindowBg : MacroFolioTheme.AccentColor;
-
-        ImGui.PushStyleColor(ImGuiCol.Button, bg);
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, bg);
-        ImGui.PushStyleColor(ImGuiCol.ButtonActive, MacroFolioTheme.ThemeButtonActive);
-        ImGui.PushStyleColor(ImGuiCol.Text, textColor);
-        ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 4f * ImGuiHelpers.GlobalScale);
-
-        if (ImGui.Button(label + "##mode_" + mode, size))
-            SwitchMode(mode);
-
-        ImGui.PopStyleColor(4);
-        ImGui.PopStyleVar();
+        var totalW = MathF.Min(240f * ImGuiHelpers.GlobalScale, availWidth);
+        ImGui.SetCursorPosX(MathF.Max(0f, (availWidth - totalW) / 2f));
+        var current = actionMode == ActionEditorMode.Classique ? 0 : 1;
+        var picked = SegmentedControl.Draw("editor_mode",
+            [Loc.Get("Editor.Mode.Classic"), Loc.Get("Editor.Mode.Simplified")], current, totalW);
+        if (picked != current)
+            SwitchMode(picked == 0 ? ActionEditorMode.Classique : ActionEditorMode.Simplifié);
     }
 
     private void SwitchMode(ActionEditorMode target)
@@ -248,7 +216,6 @@ public sealed class ActionListEditor
                 lines.RemoveAt(lines.Count - 1);
             draftActionList = lines.Select(ParseAction).ToList();
 
-            // Re-attach notes by line content (robust to lines added/removed in Classique).
             var matched = MatchNotesToLines(lines);
             for (var i = 0; i < draftActionList.Count && i < matched.Count; i++)
                 draftActionList[i].Note = matched[i];
@@ -256,7 +223,6 @@ public sealed class ActionListEditor
         else
         {
             draftActions = string.Join("\n", draftActionList.Select(SerializeAction));
-            // Stash notes anchored to their serialized line content.
             stashedLines = draftActionList.Select(SerializeAction).ToList();
             stashedNotes = draftActionList.Select(a => a.Note).ToList();
         }
@@ -271,8 +237,6 @@ public sealed class ActionListEditor
         var overLimit = !Unlimited && lineCount > MaxLines;
 
         var inputW = availWidth - 40f * ImGuiHelpers.GlobalScale;
-        // Fill the remaining height: reserve room for the spacing + line counter
-        // below so the textarea grows with the window instead of leaving dead space.
         var reserved = ImGui.GetTextLineHeightWithSpacing() + 12f * ImGuiHelpers.GlobalScale;
         var inputH = Math.Max(120f * ImGuiHelpers.GlobalScale, ImGui.GetContentRegionAvail().Y - reserved);
         ImGui.SetCursorPosX(20f * ImGuiHelpers.GlobalScale);
@@ -412,8 +376,8 @@ public sealed class ActionListEditor
                             ImGui.SetKeyboardFocusHere();
                         }
 
-                        ImGui.SetNextItemWidth(-1);
-                        ImGui.InputTextWithHint("##emote_search", Loc.Get("Editor.SearchHint"), ref emoteSearch, 64);
+                        SearchField.Draw("emote_search", ref emoteSearch, Loc.Get("Editor.SearchHint"),
+                            ImGui.GetContentRegionAvail().X);
                         ImGui.Separator();
 
                         if (emotes.Count == 0)
@@ -620,35 +584,20 @@ public sealed class ActionListEditor
 
                 var hasNote = !string.IsNullOrEmpty(action.Note);
                 ImGui.SameLine(rowAvail - delBtnW * 3f - rowSpacing * 2f - 4f * ImGuiHelpers.GlobalScale);
-                if (hasNote) ImGui.PushStyleColor(ImGuiCol.Text, MacroFolioTheme.AccentColor);
-                bool noteClicked;
-                using (Plugin.PluginInterface.UiBuilder.IconFontFixedWidthHandle.Push())
-                    noteClicked = ImGui.Button(FontAwesomeIcon.PencilAlt.ToIconString() + "##note", new Vector2(delBtnW, 0));
-                if (noteClicked)
+                if (Buttons.QuietIcon(FontAwesomeIcon.PencilAlt, "note", Loc.Get("Editor.NoteTooltip"),
+                        hasNote ? MacroFolioTheme.TextStrong : MacroFolioTheme.TextDim, new Vector2(delBtnW, 0)))
                     editingNoteRow = editingNoteRow == i ? -1 : i;
-                if (hasNote) ImGui.PopStyleColor();
-                if (ImGui.IsItemHovered())
-                {
-                    ImGui.BeginTooltip();
-                    ImGui.TextUnformatted(Loc.Get("Editor.NoteTooltip"));
-                    ImGui.EndTooltip();
-                }
 
                 ImGui.SameLine(rowAvail - delBtnW * 2f - rowSpacing - 4f * ImGuiHelpers.GlobalScale);
-                if (ImGui.Button("+##ins", new Vector2(delBtnW, 0)))
+                if (Buttons.QuietIcon(FontAwesomeIcon.Plus, "ins", Loc.Get("Editor.InsertBelow"),
+                        MacroFolioTheme.TextSecondary, new Vector2(delBtnW, 0)))
                 {
                     pendingInsertIndex = i + 1;
                     requestOpenAddMenu = true;
                 }
-                if (ImGui.IsItemHovered())
-                {
-                    ImGui.BeginTooltip();
-                    ImGui.TextUnformatted(Loc.Get("Editor.InsertBelow"));
-                    ImGui.EndTooltip();
-                }
 
                 ImGui.SameLine(rowAvail - delBtnW - 4f * ImGuiHelpers.GlobalScale);
-                if (ImGui.Button("X##del", new Vector2(delBtnW, 0)))
+                if (Buttons.QuietIcon(FontAwesomeIcon.Times, "del", null, MacroFolioTheme.DangerColor, new Vector2(delBtnW, 0)))
                     removeIndex = i;
 
                 var indent = gripW + stampW + rowSpacing * 2f;
@@ -695,9 +644,9 @@ public sealed class ActionListEditor
         var atMax = !Unlimited && draftActionList.Count >= MaxLines;
         if (atMax) ImGui.BeginDisabled();
         var addLabel = Loc.Get("Editor.AddAction");
-        var addBtnW = ImGui.CalcTextSize(addLabel).X + ImGui.GetStyle().FramePadding.X * 2;
+        var addBtnW = Buttons.TextWidth(addLabel);
         ImGui.SetCursorPosX((availWidth - addBtnW) / 2f);
-        if (ImGui.Button(addLabel))
+        if (Buttons.Tinted(addLabel))
         {
             pendingInsertIndex = -1;
             requestOpenAddMenu = true;
@@ -969,17 +918,13 @@ public sealed class ActionListEditor
     {
         float? inlineWait = null;
         var working = line;
-
-        // Pull out the first <wait.N> wherever it sits; the remaining text is the
-        // actual command. Whitespace left by the removal is collapsed.
         var waitMatch = InlineWaitRegex.Match(working);
         if (waitMatch.Success && TryParseWait(waitMatch.Groups[1].Value, out var ws) && ws > 0f)
         {
             inlineWait = ws;
             working = (working.Remove(waitMatch.Index, waitMatch.Length)).Replace("  ", " ").Trim();
         }
-
-        // A line that was only a wait token becomes a Timer.
+        
         if (inlineWait.HasValue && working.Length == 0)
             return new SimplifiedAction { Kind = ActionKind.Timer, WaitSeconds = inlineWait.Value };
 

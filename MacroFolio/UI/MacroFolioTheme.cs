@@ -86,6 +86,17 @@ public static class MacroFolioTheme
     public static readonly Vector4 TextStrong = new(1f, 1f, 1f, 1f);
     public static readonly Vector4 TextSecondary = new(0.72f, 0.72f, 0.72f, 1f);
     public static readonly Vector4 TextDim = new(0.58f, 0.58f, 0.58f, 1f);
+    public static readonly Vector4 PrimaryBg = new(0xEC / 255f, 0xEC / 255f, 0xEC / 255f, 1f);
+    public static readonly Vector4 PrimaryHovered = new(1f, 1f, 1f, 1f);
+    public static readonly Vector4 PrimaryActive = new(0xD2 / 255f, 0xD2 / 255f, 0xD2 / 255f, 1f);
+    public static readonly Vector4 PrimaryText = new(0x14 / 255f, 0x14 / 255f, 0x14 / 255f, 1f);
+    public static readonly Vector4 WarningColor = new(0.95f, 0.62f, 0.22f, 1f);
+    public static readonly Vector4 SuccessColor = new(0.36f, 0.82f, 0.42f, 1f);
+    public static readonly Vector4 DangerColor = new(0.92f, 0.36f, 0.36f, 1f);
+    public static readonly Vector4 DangerButtonBg = new(0.62f, 0.17f, 0.17f, 1f);
+    public static readonly Vector4 DangerButtonHovered = new(0.72f, 0.22f, 0.22f, 1f);
+    public static float ListRightMargin => 12f * ImGuiHelpers.GlobalScale;
+
     private const int ThemeColorCount = 26;
     private const int ThemeStyleVarCount = 5;
     public const float RadiusWindow = 10f;

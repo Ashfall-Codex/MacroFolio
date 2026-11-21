@@ -907,4 +907,37 @@ Les {1} macros de la planche seront écrites à leurs slots cibles. Les macros a
   <data name="Draft.RunFrom" xml:space="preserve">
     <value>à partir de la ligne</value>
   </data>
+  <data name="Toolbar.NewMacro" xml:space="preserve">
+    <value>Nouvelle macro</value>
+  </data>
+  <data name="Search.Clear" xml:space="preserve">
+    <value>Effacer la recherche</value>
+  </data>
+  <data name="Empty.Textes.Title" xml:space="preserve">
+    <value>Aucun texte</value>
+  </data>
+  <data name="Empty.Textes.Body" xml:space="preserve">
+    <value>Enregistrez vos textes RP pour les envoyer dans le chat en un clic.</value>
+  </data>
+  <data name="Empty.Drafts.Title" xml:space="preserve">
+    <value>Aucun brouillon</value>
+  </data>
+  <data name="Empty.Drafts.Body" xml:space="preserve">
+    <value>Écrivez de longues séquences sans la limite de 15 lignes, puis publiez-les en macros chaînées.</value>
+  </data>
+  <data name="Empty.Planches.Title" xml:space="preserve">
+    <value>Aucune planche</value>
+  </data>
+  <data name="Guard.CombatCommand" xml:space="preserve">
+    <value>Les actions de combat (/ac…) ne peuvent pas être lancées automatiquement. Mettez-les dans une macro classique.</value>
+  </data>
+  <data name="Guard.InCombat" xml:space="preserve">
+    <value>Indisponible en combat.</value>
+  </data>
+  <data name="Guard.InInstance" xml:space="preserve">
+    <value>Indisponible en instance, sauf en mode exploration, sur l'île sanctuaire, en housing et en chambre d'auberge.</value>
+  </data>
+  <data name="Guard.MacroBlocked" xml:space="preserve">
+    <value>Cette macro MacroFolio utilise une action de combat ou enchaîne la macro suivante : elle ne peut pas être lancée en instance, sauf en mode exploration.</value>
+  </data>
 </root>

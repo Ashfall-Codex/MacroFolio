@@ -5,6 +5,7 @@ using Dalamud.Interface.Textures;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using MacroFolio.Localization;
+using MacroFolio.UI.Components;
 using MacroFolio.Services;
 
 namespace MacroFolio.UI;
@@ -77,7 +78,7 @@ public sealed class MacroImportWindow : MacroFolioWindowBase, IDisposable
         if (currentIndex >= queue.Count)
         {
             ImGui.TextUnformatted(Loc.Get("Import.NoFilesPending"));
-            if (ImGui.Button(Loc.Get("Common.Close")))
+            if (Buttons.Primary(Loc.Get("Common.Close")))
                 IsOpen = false;
             return;
         }
@@ -129,18 +130,16 @@ public sealed class MacroImportWindow : MacroFolioWindowBase, IDisposable
         var sub = item.FileName;
         var subSize = ImGui.CalcTextSize(sub);
         ImGui.SetCursorPosX((availWidth - subSize.X) / 2f);
-        ImGui.TextColored(new Vector4(0.6f, 0.6f, 0.6f, 1f), sub);
+        ImGui.TextColored(MacroFolioTheme.TextSecondary, sub);
     }
 
     private void DrawTargetSetSelector()
     {
         ImGui.TextDisabled(Loc.Get("Import.TargetSet"));
         var indLabel = Plugin.ObjectTable.LocalPlayer?.Name.ToString() ?? Loc.Get("Set.CurrentCharacter");
-        if (ImGui.RadioButton($"{indLabel}##imp_ind", targetSet == MacroSet.Individual))
-            targetSet = MacroSet.Individual;
-        ImGui.SameLine();
-        if (ImGui.RadioButton(Loc.Get("Set.Shared") + "##imp_sh", targetSet == MacroSet.Shared))
-            targetSet = MacroSet.Shared;
+        var picked = SegmentedControl.Draw("imp_set", [indLabel, Loc.Get("Set.Shared")],
+            targetSet == MacroSet.Individual ? 0 : 1);
+        targetSet = picked == 0 ? MacroSet.Individual : MacroSet.Shared;
     }
 
     private void DrawRecapBlock(float availWidth)
@@ -197,7 +196,7 @@ public sealed class MacroImportWindow : MacroFolioWindowBase, IDisposable
 
         ImGui.SameLine();
         ImGui.BeginGroup();
-        if (ImGui.Button(Loc.Get("Common.ChooseIcon")))
+        if (Buttons.Quiet(Loc.Get("Common.ChooseIcon")))
             iconPicker.Open(draftIconId, id => draftIconId = id);
         ImGui.TextDisabled($"#{draftIconId}");
         ImGui.EndGroup();
@@ -220,37 +219,33 @@ public sealed class MacroImportWindow : MacroFolioWindowBase, IDisposable
         var skipLabel = Loc.Get("Import.Skip");
         var cancelLabel = Loc.Get("Import.CancelAll");
 
-        var importW = ImGui.CalcTextSize(importLabel).X + ImGui.GetStyle().FramePadding.X * 2;
-        var skipW = ImGui.CalcTextSize(skipLabel).X + ImGui.GetStyle().FramePadding.X * 2;
-        var cancelW = ImGui.CalcTextSize(cancelLabel).X + ImGui.GetStyle().FramePadding.X * 2;
+        var importW = Buttons.PrimaryWidth(importLabel);
+        var skipW = Buttons.TextWidth(skipLabel);
+        var cancelW = Buttons.TextWidth(cancelLabel);
         var spacing = 8f * ImGuiHelpers.GlobalScale;
 
-        ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.55f, 0.18f, 0.18f, 1f));
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.70f, 0.22f, 0.22f, 1f));
-        if (ImGui.Button(cancelLabel, new Vector2(cancelW, btnH)))
+        // Cancelling the queue discards nothing already imported: a quiet button is enough.
+        if (Buttons.Quiet(cancelLabel, cancelW, btnH))
         {
             queue.Clear();
             currentIndex = 0;
             IsOpen = false;
+            return;
         }
-        ImGui.PopStyleColor(2);
 
         ImGui.SameLine();
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + ImGui.GetContentRegionAvail().X - importW - skipW - spacing);
-        if (ImGui.Button(skipLabel, new Vector2(skipW, btnH)))
+        if (Buttons.Quiet(skipLabel, skipW, btnH))
             Advance();
 
         ImGui.SameLine(0f, spacing);
         var canImport = !string.IsNullOrWhiteSpace(draftName) && queue[currentIndex].Lines.Count > 0;
         if (!canImport) ImGui.BeginDisabled();
-        ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.20f, 0.55f, 0.25f, 1f));
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.25f, 0.65f, 0.30f, 1f));
-        if (ImGui.Button(importLabel, new Vector2(importW, btnH)))
+        if (Buttons.Primary(importLabel, importW, btnH))
         {
             CommitCurrent();
             Advance();
         }
-        ImGui.PopStyleColor(2);
         if (!canImport) ImGui.EndDisabled();
     }
 

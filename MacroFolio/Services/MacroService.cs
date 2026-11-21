@@ -36,6 +36,36 @@ public sealed unsafe class MacroService
         return result;
     }
 
+    public bool TryLocate(RaptureMacroModule.Macro* macro, out MacroSet set, out int slot)
+    {
+        set = MacroSet.Individual;
+        slot = -1;
+        var module = RaptureMacroModule.Instance();
+        if (module is null || macro is null) return false;
+
+        for (var i = 0; i < SlotsPerSet; i++)
+        {
+            fixed (RaptureMacroModule.Macro* individual = &module->Individual[i])
+            {
+                if (individual == macro)
+                {
+                    slot = i;
+                    return true;
+                }
+            }
+            fixed (RaptureMacroModule.Macro* shared = &module->Shared[i])
+            {
+                if (shared == macro)
+                {
+                    set = MacroSet.Shared;
+                    slot = i;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     public MacroEntry ReadSlot(MacroSet set, int slot)
     {
         var module = RaptureMacroModule.Instance();

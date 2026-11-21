@@ -4,6 +4,7 @@ using Dalamud.Interface.Textures;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using MacroFolio.Localization;
+using MacroFolio.UI.Components;
 using MacroFolio.Services;
 
 namespace MacroFolio.UI;
@@ -137,7 +138,7 @@ public sealed class MacroCreateWizard : MacroFolioWindowBase, IDisposable
 
         var btnW = 120f * ImGuiHelpers.GlobalScale;
 
-        if (ImGui.Button(Loc.Get("Common.Cancel") + "##wiz_cancel", new Vector2(btnW, 0)))
+        if (Buttons.Quiet(Loc.Get("Common.Cancel") + "##wiz_cancel", btnW))
             IsOpen = false;
 
         ImGui.SameLine();
@@ -148,12 +149,8 @@ public sealed class MacroCreateWizard : MacroFolioWindowBase, IDisposable
         var finishLabel = (editingMacroId is not null ? Loc.Get("Common.Save") : Loc.Get("Common.Create")) + "##wiz_finish";
         var disabled = string.IsNullOrWhiteSpace(draftName);
         if (disabled) ImGui.BeginDisabled();
-        ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.2f, 0.55f, 0.25f, 1f));
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.25f, 0.65f, 0.30f, 1f));
-        ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Vector4(0.18f, 0.50f, 0.22f, 1f));
-        if (ImGui.Button(finishLabel, new Vector2(btnW, 0)))
+        if (Buttons.Primary(finishLabel, btnW))
             Finish();
-        ImGui.PopStyleColor(3);
         if (disabled) ImGui.EndDisabled();
     }
 

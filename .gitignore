@@ -32,3 +32,6 @@ Thumbs.db
 ## Dalamud
 /MacroFolio/bin/
 /MacroFolio/obj/
+
+# Script de release local (hors dépôt)
+release.sh
